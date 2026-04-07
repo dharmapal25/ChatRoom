@@ -1,9 +1,5 @@
-const express = require('express');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const { protect } = require('../middleware/auth');
-
-const router = express.Router();
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -15,7 +11,7 @@ const generateToken = (id) => {
 // @route   POST /api/auth/register
 // @desc    Register a user
 // @access  Public
-router.post('/register', async (req, res) => {
+exports.register = async (req, res) => {
   try {
     const { username, email, password, passwordConfirm } = req.body;
 
@@ -72,12 +68,12 @@ router.post('/register', async (req, res) => {
       message: error.message,
     });
   }
-});
+};
 
 // @route   POST /api/auth/login
 // @desc    Login user
 // @access  Public
-router.post('/login', async (req, res) => {
+exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -128,12 +124,12 @@ router.post('/login', async (req, res) => {
       message: error.message,
     });
   }
-});
+};
 
 // @route   GET /api/auth/me
 // @desc    Get current logged in user
 // @access  Private
-router.get('/me', protect, async (req, res) => {
+exports.getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
 
@@ -147,16 +143,14 @@ router.get('/me', protect, async (req, res) => {
       message: error.message,
     });
   }
-});
+};
 
 // @route   POST /api/auth/logout
 // @desc    Logout user
 // @access  Private
-router.post('/logout', protect, (req, res) => {
+exports.logout = (req, res) => {
   res.status(200).json({
     success: true,
     message: 'User logged out successfully',
   });
-});
-
-module.exports = router;
+};

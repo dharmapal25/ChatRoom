@@ -1,11 +1,10 @@
-const app = require('./app');
-const connectDB = require('./config/db');
+const app = require('./src/app');
+const connectDB = require('./src/config/db');
 
 const PORT = process.env.PORT;
 
 // Connect to MongoDB
 connectDB();
-
 
 
 
