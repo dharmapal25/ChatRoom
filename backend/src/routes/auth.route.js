@@ -5,6 +5,7 @@ const {
   login,
   getMe,
   logout,
+  refreshToken,
 } = require('../controllers/auth.controller');
 
 const router = express.Router();
@@ -18,6 +19,11 @@ router.post('/register', register);
 // @desc    Login user
 // @access  Public
 router.post('/login', login);
+
+// @route   POST /api/auth/refresh
+// @desc    Refresh access token
+// @access  Public
+router.post('/refresh', refreshToken);
 
 // @route   GET /api/auth/me
 // @desc    Get current logged in user

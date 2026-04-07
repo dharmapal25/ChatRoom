@@ -1,10 +1,17 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const User = require('../models/User.model');
 
-// Generate JWT Token
-const generateToken = (id) => {
+// Generate Access Token (short-lived, in memory)
+const generateAccessToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRATION || '7d',
+    expiresIn: process.env.JWT_EXPIRATION || '15m',
+  });
+};
+
+// Generate Refresh Token (long-lived, in cookies)
+const generateRefreshToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_REFRESH_EXPIRATION || '7d',
   });
 };
 
@@ -49,13 +56,22 @@ exports.register = async (req, res) => {
       password,
     });
 
-    // Generate token
-    const token = generateToken(user._id);
+    // Generate tokens
+    const accessToken = generateAccessToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
+
+    // Set refresh token in secure httpOnly cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
 
     res.status(201).json({
       success: true,
       message: 'User registered successfully',
-      token,
+      accessToken,
       user: {
         id: user._id,
         username: user.username,
@@ -105,13 +121,22 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Generate token
-    const token = generateToken(user._id);
+    // Generate tokens
+    const accessToken = generateAccessToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
+
+    // Set refresh token in secure httpOnly cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
 
     res.status(200).json({
       success: true,
       message: 'User logged in successfully',
-      token,
+      accessToken,
       user: {
         id: user._id,
         username: user.username,
@@ -149,8 +174,57 @@ exports.getMe = async (req, res) => {
 // @desc    Logout user
 // @access  Private
 exports.logout = (req, res) => {
+  // Clear refresh token cookie
+  res.clearCookie('refreshToken', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+  });
+
   res.status(200).json({
     success: true,
     message: 'User logged out successfully',
   });
+};
+
+// @route   POST /api/auth/refresh
+// @desc    Refresh access token
+// @access  Public
+exports.refreshToken = async (req, res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      return res.status(401).json({
+        success: false,
+        message: 'No refresh token provided',
+      });
+    }
+
+    try {
+      const decoded = jwt.verify(
+        refreshToken,
+        process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET
+      );
+
+      // Generate new access token
+      const accessToken = generateAccessToken(decoded.id);
+
+      res.status(200).json({
+        success: true,
+        accessToken,
+      });
+    } catch (error) {
+      res.clearCookie('refreshToken');
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid refresh token',
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
 };
