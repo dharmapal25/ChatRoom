@@ -21,8 +21,10 @@ app.get('/api/test', (req, res) => {
 
 // Routes
 const authRoutes = require('./routes/auth.route');
+const roomRoutes = require('./routes/room.route');
 
 app.use('/api/auth', authRoutes);
+app.use('/api/rooms', roomRoutes);
 
 // 404 handler
 app.use((req, res) => {

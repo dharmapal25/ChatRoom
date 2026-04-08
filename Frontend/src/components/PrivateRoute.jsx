@@ -6,8 +6,14 @@ export function PrivateRoute({ children }) {
 
   if (loading) {
     return (
-      <div className="loading-container">
-        <p>Loading...</p>
+      <div style={{ 
+        minHeight: '100vh', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+      }}>
+        <p style={{ color: 'white', fontSize: '1.2rem' }}>Loading...</p>
       </div>
     );
   }

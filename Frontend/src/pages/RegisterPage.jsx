@@ -1,23 +1,33 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './AuthPages.css';
 
-export function RegisterPage() {
+export default function RegisterPage() {
   const navigate = useNavigate();
   const { register, error: authError } = useAuth();
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [passwordConfirm, setPasswordConfirm] = useState('');
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: '',
+    passwordConfirm: '',
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
 
-    if (password !== passwordConfirm) {
+    if (formData.password !== formData.passwordConfirm) {
       setError('Passwords do not match');
       return;
     }
@@ -25,7 +35,12 @@ export function RegisterPage() {
     setLoading(true);
 
     try {
-      await register(username, email, password, passwordConfirm);
+      await register(
+        formData.username,
+        formData.email,
+        formData.password,
+        formData.passwordConfirm
+      );
       navigate('/');
     } catch (err) {
       setError(err.message || 'Registration failed');
@@ -47,12 +62,14 @@ export function RegisterPage() {
             <label htmlFor="username">Username</label>
             <input
               id="username"
-              name="username"
               type="text"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              placeholder="Choose a username"
               required
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter your username"
+              minLength="3"
+              disabled={loading}
             />
           </div>
 
@@ -60,12 +77,13 @@ export function RegisterPage() {
             <label htmlFor="email">Email address</label>
             <input
               id="email"
-              name="email"
               type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="you@example.com"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
+              disabled={loading}
             />
           </div>
 
@@ -73,12 +91,14 @@ export function RegisterPage() {
             <label htmlFor="password">Password</label>
             <input
               id="password"
-              name="password"
               type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Create a password"
               required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
+              minLength="6"
+              disabled={loading}
             />
           </div>
 
@@ -86,27 +106,29 @@ export function RegisterPage() {
             <label htmlFor="passwordConfirm">Confirm Password</label>
             <input
               id="passwordConfirm"
-              name="passwordConfirm"
               type="password"
-              required
-              value={passwordConfirm}
-              onChange={(e) => setPasswordConfirm(e.target.value)}
+              name="passwordConfirm"
+              value={formData.passwordConfirm}
+              onChange={handleChange}
               placeholder="Confirm your password"
+              required
+              minLength="6"
+              disabled={loading}
             />
           </div>
 
-          <button type="submit" disabled={loading} className="submit-btn">
-            {loading ? 'Creating account...' : 'Sign up'}
+          <button type="submit" className="button-submit" disabled={loading}>
+            {loading ? 'Creating account...' : 'Create account'}
           </button>
         </form>
 
         <p className="auth-link">
           Already have an account?{' '}
-          <a href="/login">Sign in</a>
+          <Link to="/login" className="link">
+            Sign in
+          </Link>
         </p>
       </div>
     </div>
   );
 }
-
-export default RegisterPage;

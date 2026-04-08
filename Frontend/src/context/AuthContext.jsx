@@ -4,8 +4,9 @@ import {
   loginUser,
   logoutUser,
   getCurrentUser,
-  getAccessToken,
 } from '../services/authService';
+import { getAccessToken, clearAccessToken } from '../services/api';
+import { initializeSocket, getSocket } from '../services/socketService';
 
 // Create Auth Context
 const AuthContext = createContext(null);
@@ -22,11 +23,16 @@ export function AuthProvider({ children }) {
       try {
         const token = getAccessToken();
         if (token) {
-          const currentUser = await getCurrentUser();
-          setUser(currentUser);
+          try {
+            const currentUser = await getCurrentUser();
+            setUser(currentUser);
+          } catch (err) {
+            console.error('Failed to get current user:', err);
+            clearAccessToken();
+          }
         }
       } catch (err) {
-        setError(null);
+        console.error('Auth check error:', err);
       } finally {
         setLoading(false);
       }
@@ -48,7 +54,8 @@ export function AuthProvider({ children }) {
       setUser(response.user);
       return response;
     } catch (err) {
-      setError(err.message || 'Registration failed');
+      const errorMsg = err.message || 'Registration failed';
+      setError(errorMsg);
       throw err;
     }
   }, []);
@@ -57,11 +64,19 @@ export function AuthProvider({ children }) {
   const login = useCallback(async (email, password) => {
     try {
       setError(null);
-      const response = await loginUser({ email, password });
+      const response = await loginUser(email, password);
       setUser(response.user);
+      
+      // Initialize Socket.IO and register user
+      setTimeout(() => {
+        const socket = initializeSocket();
+        socket.emit('register-user', { userId: response.user._id });
+      }, 500);
+      
       return response;
     } catch (err) {
-      setError(err.message || 'Login failed');
+      const errorMsg = err.message || 'Login failed';
+      setError(errorMsg);
       throw err;
     }
   }, []);
@@ -73,8 +88,8 @@ export function AuthProvider({ children }) {
       await logoutUser();
       setUser(null);
     } catch (err) {
-      setError(err.message || 'Logout failed');
-      throw err;
+      console.error('Logout error:', err);
+      setUser(null);
     }
   }, []);
 

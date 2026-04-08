@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './AuthPages.css';
 
-export function LoginPage() {
+export default function LoginPage() {
   const navigate = useNavigate();
   const { login, error: authError } = useAuth();
   const [email, setEmail] = useState('');
@@ -39,12 +39,12 @@ export function LoginPage() {
             <label htmlFor="email">Email address</label>
             <input
               id="email"
-              name="email"
               type="email"
-              required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
+              placeholder="you@example.com"
+              required
+              disabled={loading}
             />
           </div>
 
@@ -52,27 +52,27 @@ export function LoginPage() {
             <label htmlFor="password">Password</label>
             <input
               id="password"
-              name="password"
               type="password"
-              required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
+              required
+              disabled={loading}
             />
           </div>
 
-          <button type="submit" disabled={loading} className="submit-btn">
+          <button type="submit" className="button-submit" disabled={loading}>
             {loading ? 'Signing in...' : 'Sign in'}
           </button>
         </form>
 
         <p className="auth-link">
           Don't have an account?{' '}
-          <a href="/register">Sign up</a>
+          <Link to="/register" className="link">
+            Create one
+          </Link>
         </p>
       </div>
     </div>
   );
 }
-
-export default LoginPage;

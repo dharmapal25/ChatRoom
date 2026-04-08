@@ -1,28 +1,13 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import { PrivateRoute } from './components/PrivateRoute';
-import { LoginPage } from './pages/LoginPage';
-import { RegisterPage } from './pages/RegisterPage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import HomePage from './pages/HomePage';
+import RoomsListPage from './pages/RoomsListPage';
+import ChatRoomPage from './pages/ChatRoomPage';
+import CreateRoomPage from './pages/CreateRoomPage';
 import './App.css';
-
-function HomePage() {
-  const { user, logout } = useAuth();
-
-  return (
-    <div className="home-shell">
-      <header className="home-header">
-        <div>
-          <span className="tagline">Welcome back</span>
-          <h1>Hello {user?.username || 'User'}</h1>
-          <p>Your dashboard is ready</p>
-        </div>
-        <button className="button-secondary" onClick={logout}>
-          Logout
-        </button>
-      </header>
-    </div>
-  );
-}
 
 function App() {
   return (
@@ -39,6 +24,31 @@ function App() {
               </PrivateRoute>
             }
           />
+          <Route
+            path="/rooms"
+            element={
+              <PrivateRoute>
+                <RoomsListPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/create-room"
+            element={
+              <PrivateRoute>
+                <CreateRoomPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/chat/:roomId"
+            element={
+              <PrivateRoute>
+                <ChatRoomPage />
+              </PrivateRoute>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
     </Router>
@@ -46,5 +56,3 @@ function App() {
 }
 
 export default App;
-
-

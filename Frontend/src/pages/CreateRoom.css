@@ -1,6 +1,6 @@
-/* Authentication Pages */
+/* Create Room Page */
 
-.auth-container {
+.create-room-page {
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -9,23 +9,23 @@
   padding: 20px;
 }
 
-.auth-box {
+.create-room-container {
   background: white;
   border-radius: 12px;
   padding: 40px;
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
   width: 100%;
-  max-width: 400px;
+  max-width: 500px;
 }
 
-.auth-box h2 {
+.create-room-container h2 {
   margin: 0 0 30px 0;
   color: #333;
-  font-size: 1.6rem;
+  font-size: 1.8rem;
   text-align: center;
 }
 
-.auth-form {
+.create-room-form {
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -43,7 +43,9 @@
   font-size: 0.95rem;
 }
 
-.form-group input {
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group textarea {
   padding: 12px 15px;
   border: 1px solid #ddd;
   border-radius: 8px;
@@ -52,31 +54,89 @@
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.form-group input:focus {
+.form-group input[type="text"]:focus,
+.form-group input[type="number"]:focus,
+.form-group textarea:focus {
   outline: none;
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-.button-submit {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 12px 20px;
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-group small {
+  color: #999;
+  font-size: 0.85rem;
+}
+
+.form-group.checkbox {
+  gap: 12px;
+}
+
+.form-group.checkbox label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  margin: 0;
+}
+
+.form-group.checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #667eea;
+}
+
+.form-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.button-primary,
+.button-secondary {
+  padding: 12px 24px;
   border: none;
   border-radius: 8px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  flex: 1;
+}
+
+.button-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
-.button-submit:hover:not(:disabled) {
+.button-primary:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(102, 126, 234, 0.6);
 }
 
-.button-submit:disabled {
+.button-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.button-secondary {
+  background: #f0f0f0;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.button-secondary:hover:not(:disabled) {
+  background: #e0e0e0;
+}
+
+.button-secondary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -101,38 +161,18 @@
   }
 }
 
-.auth-link {
-  text-align: center;
-  color: #666;
-  margin: 0;
-  font-size: 0.95rem;
-}
-
-.link {
-  color: #667eea;
-  text-decoration: none;
-  font-weight: 600;
-  transition: color 0.3s ease;
-}
-
-.link:hover {
-  color: #764ba2;
-  text-decoration: underline;
-}
-
 /* Responsive Design */
 @media (max-width: 480px) {
-  .auth-box {
+  .create-room-container {
     padding: 25px;
   }
 
-  .auth-box h2 {
+  .create-room-container h2 {
     font-size: 1.4rem;
     margin-bottom: 20px;
   }
 
-  .form-group input {
-    padding: 10px 12px;
-    font-size: 0.95rem;
+  .form-actions {
+    flex-direction: column;
   }
 }
