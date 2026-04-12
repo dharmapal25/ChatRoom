@@ -9,19 +9,18 @@ const {
   sendOtp,
   verifyOtp,
 } = require('../controllers/auth.controller');
-const { sendOtpLimiter, verifyOtpLimiter, loginLimiter } = require('../middleware/rateLimiter');
 
 const router = express.Router();
 
 // @route   POST /api/auth/send-otp
 // @desc    Send OTP for registration
 // @access  Public
-router.post('/send-otp', sendOtpLimiter, sendOtp);
+router.post('/send-otp', sendOtp);
 
 // @route   POST /api/auth/verify-otp
 // @desc    Verify OTP and create user
 // @access  Public
-router.post('/verify-otp', verifyOtpLimiter, verifyOtp);
+router.post('/verify-otp', verifyOtp);
 
 // @route   POST /api/auth/register
 // @desc    Register a user (fallback/direct)
@@ -31,7 +30,7 @@ router.post('/register', register);
 // @route   POST /api/auth/login
 // @desc    Login user
 // @access  Public
-router.post('/login', loginLimiter, login);
+router.post('/login', login);
 
 // @route   POST /api/auth/refresh
 // @desc    Refresh access token

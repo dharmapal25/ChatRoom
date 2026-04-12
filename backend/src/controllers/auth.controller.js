@@ -2,7 +2,13 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const User = require('../models/User.model');
 const { sendOTPEmail } = require('../services/emailService');
-const { storeOTP, getOTPData, verifyOTP, deleteOTP, storeAccessToken } = require('../services/otpService');
+const { 
+  storeOTP, 
+  getOTPData, 
+  verifyOTP, 
+  deleteOTP, 
+  storeAccessToken
+} = require('../services/otpService');
 const redis = require('../config/redis');
 
 // Generate Access Token (short-lived, in memory)
@@ -81,7 +87,7 @@ exports.sendOtp = async (req, res) => {
 };
 
 // @route   POST /api/auth/verify-otp
-// @desc    Verify OTP and create user
+// @desc    Verify OTP and create user or login if exists
 // @access  Public
 exports.verifyOtp = async (req, res) => {
   try {
@@ -95,7 +101,7 @@ exports.verifyOtp = async (req, res) => {
       });
     }
 
-    // Verify OTP from Redis
+    // Verify OTP from Redis (ONLY CHECK OTP)
     const otpResult = await verifyOTP(email, otp);
 
     if (!otpResult.success) {
@@ -108,12 +114,17 @@ exports.verifyOtp = async (req, res) => {
     // Get OTP data
     const otpData = otpResult.data;
 
-    // Create user in database (ONLY AFTER OTP VERIFICATION)
-    const user = await User.create({
-      username: otpData.username,
-      email: email,
-      password: otpData.password,
-    });
+    // Check if user already exists by email
+    let user = await User.findOne({ email });
+
+    // If user doesn't exist, create new user
+    if (!user) {
+      user = await User.create({
+        username: otpData.username,
+        email: email,
+        password: otpData.password,
+      });
+    }
 
     // Delete OTP from Redis after successful verification
     await deleteOTP(email);
@@ -135,7 +146,7 @@ exports.verifyOtp = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'Registration successful! Welcome!',
+      message: user.createdAt ? 'Registration successful! Welcome!' : 'Login successful! Welcome back!',
       accessToken,
       user: {
         id: user._id,

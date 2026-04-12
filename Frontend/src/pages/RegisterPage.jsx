@@ -105,7 +105,10 @@ export default function RegisterPage() {
     e.preventDefault();
     setError(null);
 
-    if (!formData.otp || formData.otp.length !== 4) {
+    // Remove spaces from OTP
+    const cleanOtp = formData.otp.replace(/\s/g, '');
+
+    if (!cleanOtp || cleanOtp.length !== 4) {
       setError('Please enter a valid 4-digit OTP');
       return;
     }
@@ -115,7 +118,7 @@ export default function RegisterPage() {
     try {
       const response = await API.post('/auth/verify-otp', {
         email: registeredEmail,
-        otp: formData.otp,
+        otp: cleanOtp,
       });
 
       // OTP verified successfully - store token in API headers

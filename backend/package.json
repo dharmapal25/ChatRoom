@@ -23,6 +23,7 @@
     "mongoose": "^9.4.1",
     "nodemailer": "^8.0.5",
     "nodemon": "^3.1.14",
+    "rate-limit-redis": "^4.3.1",
     "socket.io": "^4.8.3"
   }
 }
