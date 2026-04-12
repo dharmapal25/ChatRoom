@@ -6,8 +6,8 @@ const API = axios.create({
   withCredentials: true, // Enable cookies
 });
 
-// Access token stored in memory
-let accessToken = localStorage.getItem('accessToken') || null;
+// Access token stored in memory (not localStorage)
+let accessToken = null;
 
 // Request interceptor - add access token to headers
 API.interceptors.request.use(

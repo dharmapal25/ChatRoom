@@ -4,6 +4,9 @@ const { generateOTP, sendOTPEmail } = require('./emailService');
 // OTP expiration time in seconds (10 minutes)
 const OTP_EXPIRATION = 10 * 60; // 600 seconds
 
+// Access token expiration time in seconds (15 minutes)
+const TOKEN_EXPIRATION = 15 * 60; // 900 seconds
+
 /**
  * Store OTP in Redis
  * Key format: otp:email
@@ -116,11 +119,27 @@ const sendAndStoreOTP = async (email, username, password) => {
   }
 };
 
+/**
+ * Store access token in Redis for session management
+ * Key format: token:userId
+ */
+const storeAccessToken = async (userId, token) => {
+  try {
+    const key = `token:${userId}`;
+    await redis.setex(key, TOKEN_EXPIRATION, token);
+    return true;
+  } catch (error) {
+    console.error('Error storing access token in Redis:', error);
+    throw new Error('Failed to store access token');
+  }
+};
+
 module.exports = {
   storeOTP,
   getOTPData,
   verifyOTP,
   deleteOTP,
   sendAndStoreOTP,
+  storeAccessToken,
   OTP_EXPIRATION,
 };

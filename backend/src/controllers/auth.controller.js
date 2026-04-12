@@ -2,7 +2,8 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const User = require('../models/User.model');
 const { sendOTPEmail } = require('../services/emailService');
-const { storeOTP, getOTPData, verifyOTP, deleteOTP } = require('../services/otpService');
+const { storeOTP, getOTPData, verifyOTP, deleteOTP, storeAccessToken } = require('../services/otpService');
+const redis = require('../config/redis');
 
 // Generate Access Token (short-lived, in memory)
 const generateAccessToken = (user) => {
@@ -120,6 +121,9 @@ exports.verifyOtp = async (req, res) => {
     // Generate tokens
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user._id);
+
+    // Store access token in Redis with user session
+    await storeAccessToken(user._id.toString(), accessToken);
 
     // Set refresh token in secure httpOnly cookie
     res.cookie('refreshToken', refreshToken, {

@@ -118,8 +118,8 @@ export default function RegisterPage() {
         otp: formData.otp,
       });
 
-      // OTP verified successfully - store token
-      localStorage.setItem('accessToken', response.data.accessToken);
+      // OTP verified successfully - store token in API headers
+      API.defaults.headers.common['Authorization'] = `Bearer ${response.data.accessToken}`;
       
       // Clear persisted registration data
       localStorage.removeItem('registrationData');
@@ -132,6 +132,7 @@ export default function RegisterPage() {
         formData.passwordConfirm
       );
       
+      // Redirect to home page
       navigate('/');
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'OTP verification failed');
