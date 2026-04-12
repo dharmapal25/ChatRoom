@@ -1,4 +1,4 @@
-// Simple in-memory rate limiter (can be replaced with express-rate-limit)
+// Rate limiting for OTP endpoints
 const rateLimit = require('express-rate-limit');
 
 // Rate limiter for sending OTP (5 requests per 15 minutes)
@@ -10,11 +10,11 @@ const sendOtpLimiter = rateLimit({
   legacyHeaders: false,
   keyGenerator: (req) => {
     // Rate limit by email first, fallback to IP
-    return req.body.email || req.ip;
-  },
-  skip: (req) => {
-    // Skip if no email provided (but still use IP-based limiting)
-    return false;
+    if (req.body?.email) {
+      return req.body.email;
+    }
+    // Use default key generator for IP (handles IPv6 properly)
+    return req.ip;
   },
 });
 
@@ -27,11 +27,10 @@ const verifyOtpLimiter = rateLimit({
   legacyHeaders: false,
   keyGenerator: (req) => {
     // Rate limit by email first, fallback to IP
-    return req.body.email || req.ip;
-  },
-  skip: (req) => {
-    // Skip if no email provided (but still use IP-based limiting)
-    return false;
+    if (req.body?.email) {
+      return req.body.email;
+    }
+    return req.ip;
   },
 });
 
@@ -44,11 +43,10 @@ const loginLimiter = rateLimit({
   legacyHeaders: false,
   keyGenerator: (req) => {
     // Rate limit by email first, fallback to IP
-    return req.body.email || req.ip;
-  },
-  skip: (req) => {
-    // Skip if no email provided (but still use IP-based limiting)
-    return false;
+    if (req.body?.email) {
+      return req.body.email;
+    }
+    return req.ip;
   },
 });
 

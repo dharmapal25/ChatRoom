@@ -38,6 +38,9 @@ const sendOTPEmail = async (email, otp) => {
     throw new Error('Email service is not configured. Please contact administrator.');
   }
 
+  // If otp is null, generate it here (for compatibility)
+  const otpCode = otp || Math.floor(1000 + Math.random() * 9000).toString();
+
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
@@ -48,7 +51,7 @@ const sendOTPEmail = async (email, otp) => {
         <p>Thank you for registering with us!</p>
         <p>Your OTP verification code is:</p>
         <div style="background-color: #f0f0f0; padding: 15px; border-radius: 5px; text-align: center; margin: 20px 0;">
-          <h1 style="color: #007bff; margin: 0; letter-spacing: 5px;">${otp}</h1>
+          <h1 style="color: #007bff; margin: 0; letter-spacing: 5px;">${otpCode}</h1>
         </div>
         <p><strong>This code will expire in 10 minutes.</strong></p>
         <p>If you didn't request this verification code, please ignore this email.</p>

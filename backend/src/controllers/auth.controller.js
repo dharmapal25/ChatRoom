@@ -1,8 +1,8 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const User = require('../models/User.model');
-const OTPVerification = require('../models/OTPVerification.model');
-const { generateOTP, sendOTPEmail } = require('../services/emailService');
+const { sendOTPEmail } = require('../services/emailService');
+const { storeOTP, getOTPData, verifyOTP, deleteOTP } = require('../services/otpService');
 
 // Generate Access Token (short-lived, in memory)
 const generateAccessToken = (user) => {
@@ -44,7 +44,7 @@ exports.sendOtp = async (req, res) => {
       });
     }
 
-    // Check if user already exists
+    // Check if user already exists in database
     const userExists = await User.findOne({
       $or: [{ email }, { username }],
     });
@@ -56,25 +56,14 @@ exports.sendOtp = async (req, res) => {
       });
     }
 
-    // Delete any existing OTP for this email
-    await OTPVerification.deleteMany({ email });
-
-    // Generate OTP
-    const otp = generateOTP();
-
-    // Hash password before storing in OTP collection
+    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Save OTP to database with hashed password
-    await OTPVerification.create({
-      email,
-      otp,
-      username,
-      password: hashedPassword,
-    });
+    // Store OTP in Redis and get the generated OTP
+    const otp = await storeOTP(email, username, hashedPassword);
 
-    // Send OTP email
+    // Send OTP email with the generated OTP
     await sendOTPEmail(email, otp);
 
     res.status(200).json({
@@ -105,42 +94,28 @@ exports.verifyOtp = async (req, res) => {
       });
     }
 
-    // Find OTP verification record
-    const otpRecord = await OTPVerification.findOne({ email });
+    // Verify OTP from Redis
+    const otpResult = await verifyOTP(email, otp);
 
-    if (!otpRecord) {
+    if (!otpResult.success) {
       return res.status(400).json({
         success: false,
-        message: 'No OTP request found for this email. Please request a new OTP.',
+        message: otpResult.message,
       });
     }
 
-    // Check if OTP is expired
-    if (new Date() > otpRecord.expiresAt) {
-      await OTPVerification.deleteOne({ _id: otpRecord._id });
-      return res.status(400).json({
-        success: false,
-        message: 'OTP has expired. Please request a new one.',
-      });
-    }
-
-    // Verify OTP (only check OTP, not username/email as they were already verified)
-    if (otpRecord.otp !== otp) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid OTP. Please try again.',
-      });
-    }
+    // Get OTP data
+    const otpData = otpResult.data;
 
     // Create user in database (ONLY AFTER OTP VERIFICATION)
     const user = await User.create({
-      username: otpRecord.username,
-      email: otpRecord.email,
-      password: otpRecord.password,
+      username: otpData.username,
+      email: email,
+      password: otpData.password,
     });
 
-    // Delete OTP record after successful verification
-    await OTPVerification.deleteOne({ _id: otpRecord._id });
+    // Delete OTP from Redis after successful verification
+    await deleteOTP(email);
 
     // Generate tokens
     const accessToken = generateAccessToken(user);
