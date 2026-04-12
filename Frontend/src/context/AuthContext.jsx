@@ -51,6 +51,15 @@ export function AuthProvider({ children }) {
         password,
         passwordConfirm,
       });
+      
+      // Initialize Socket.IO and register user after successful registration
+      setTimeout(() => {
+        const socket = initializeSocket();
+        if (socket && response.user) {
+          socket.emit('register-user', { userId: response.user.id || response.user._id });
+        }
+      }, 500);
+      
       setUser(response.user);
       return response;
     } catch (err) {

@@ -4,7 +4,7 @@ const http = require('http');
 const socketIo = require('socket.io');
 const Message = require('./src/models/Message.model');
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT;
 
 // Create HTTP server with Express
 const server = http.createServer(app);

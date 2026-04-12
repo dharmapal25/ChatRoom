@@ -1,5 +1,8 @@
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 const User = require('../models/User.model');
+const OTPVerification = require('../models/OTPVerification.model');
+const { generateOTP, sendOTPEmail } = require('../services/emailService');
 
 // Generate Access Token (short-lived, in memory)
 const generateAccessToken = (user) => {
@@ -19,8 +22,159 @@ const generateRefreshToken = (id) => {
   });
 };
 
+// @route   POST /api/auth/send-otp
+// @desc    Send OTP to email for registration
+// @access  Public
+exports.sendOtp = async (req, res) => {
+  try {
+    const { email, username, password, passwordConfirm } = req.body;
+
+    // Validation
+    if (!email || !username || !password || !passwordConfirm) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide all required fields',
+      });
+    }
+
+    if (password !== passwordConfirm) {
+      return res.status(400).json({
+        success: false,
+        message: 'Passwords do not match',
+      });
+    }
+
+    // Check if user already exists
+    const userExists = await User.findOne({
+      $or: [{ email }, { username }],
+    });
+
+    if (userExists) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email or username already in use',
+      });
+    }
+
+    // Delete any existing OTP for this email
+    await OTPVerification.deleteMany({ email });
+
+    // Generate OTP
+    const otp = generateOTP();
+
+    // Hash password before storing in OTP collection
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Save OTP to database with hashed password
+    await OTPVerification.create({
+      email,
+      otp,
+      username,
+      password: hashedPassword,
+    });
+
+    // Send OTP email
+    await sendOTPEmail(email, otp);
+
+    res.status(200).json({
+      success: true,
+      message: 'OTP sent to your email. Please verify to complete registration.',
+    });
+  } catch (error) {
+    console.error('Send OTP error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to send OTP',
+    });
+  }
+};
+
+// @route   POST /api/auth/verify-otp
+// @desc    Verify OTP and create user
+// @access  Public
+exports.verifyOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    // Validation
+    if (!email || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide email and OTP',
+      });
+    }
+
+    // Find OTP verification record
+    const otpRecord = await OTPVerification.findOne({ email });
+
+    if (!otpRecord) {
+      return res.status(400).json({
+        success: false,
+        message: 'No OTP request found for this email. Please request a new OTP.',
+      });
+    }
+
+    // Check if OTP is expired
+    if (new Date() > otpRecord.expiresAt) {
+      await OTPVerification.deleteOne({ _id: otpRecord._id });
+      return res.status(400).json({
+        success: false,
+        message: 'OTP has expired. Please request a new one.',
+      });
+    }
+
+    // Verify OTP (only check OTP, not username/email as they were already verified)
+    if (otpRecord.otp !== otp) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid OTP. Please try again.',
+      });
+    }
+
+    // Create user in database (ONLY AFTER OTP VERIFICATION)
+    const user = await User.create({
+      username: otpRecord.username,
+      email: otpRecord.email,
+      password: otpRecord.password,
+    });
+
+    // Delete OTP record after successful verification
+    await OTPVerification.deleteOne({ _id: otpRecord._id });
+
+    // Generate tokens
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user._id);
+
+    // Set refresh token in secure httpOnly cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Registration successful! Welcome!',
+      accessToken,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    console.error('Verify OTP error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to verify OTP',
+    });
+  }
+};
+
 // @route   POST /api/auth/register
-// @desc    Register a user
+// @desc    Register a user (deprecated - use send-otp and verify-otp)
 // @access  Public
 exports.register = async (req, res) => {
   try {
@@ -148,6 +302,14 @@ exports.login = async (req, res) => {
         email: user.email,
       },
     });
+
+    // Initialize Socket.IO and register user
+    setTimeout(() => {
+      const socket = require('../services/socketService');
+      if (socket) {
+        socket.emit('register-user', { userId: user._id });
+      }
+    }, 500);
   } catch (error) {
     res.status(500).json({
       success: false,
