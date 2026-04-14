@@ -1,6 +1,5 @@
 const app = require('./src/app');
 const connectDB = require('./src/config/db');
-const redis = require('./src/config/redis');
 const http = require('http');
 const socketIo = require('socket.io');
 const Message = require('./src/models/Message.model');

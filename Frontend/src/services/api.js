@@ -31,7 +31,8 @@ API.interceptors.response.use(
       error.response?.status === 401 &&
       !originalRequest._retry &&
       originalRequest.url !== '/auth/login' &&
-      originalRequest.url !== '/auth/register'
+      originalRequest.url !== '/auth/register' &&
+      originalRequest.url !== '/auth/verify-session'
     ) {
       originalRequest._retry = true;
 
@@ -43,16 +44,14 @@ API.interceptors.response.use(
           { withCredentials: true }
         );
 
-        // Update access token
+        // Update access token (memory only)
         accessToken = data.accessToken;
-        localStorage.setItem('accessToken', accessToken);
 
         // Retry original request with new token
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return API(originalRequest);
       } catch (refreshError) {
         // Refresh failed, redirect to login
-        localStorage.removeItem('accessToken');
         accessToken = null;
         window.location.href = '/login';
         return Promise.reject(refreshError);
@@ -64,9 +63,9 @@ API.interceptors.response.use(
 );
 
 // Export function to set access token (called after login)
+// Access token is stored in memory only, not in localStorage
 export const setAccessToken = (token) => {
   accessToken = token;
-  localStorage.setItem('accessToken', token);
 };
 
 // Export function to get access token
@@ -75,9 +74,9 @@ export const getAccessToken = () => {
 };
 
 // Export function to clear access token (called on logout)
+// Access token is cleared from memory
 export const clearAccessToken = () => {
   accessToken = null;
-  localStorage.removeItem('accessToken');
 };
 
 export default API;

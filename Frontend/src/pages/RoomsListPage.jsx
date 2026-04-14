@@ -153,10 +153,15 @@ export default function RoomsListPage() {
                   )}
                 </div>
 
-                {room.members.some((m) => {
-                  // Handle both object with _id and string ID
-                  const memberId = typeof m === 'string' ? m : m._id;
-                  return memberId === user?._id;
+                {room.members && user && room.members.some((m) => {
+                  // Safely handle both string and object formats
+                  try {
+                    const memberId = (typeof m === 'string' ? m : m?._id)?.toString();
+                    const userId = user._id?.toString();
+                    return memberId && userId && memberId === userId;
+                  } catch (e) {
+                    return false;
+                  }
                 }) ? (
                   <button
                     className="button-secondary"

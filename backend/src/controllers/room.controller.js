@@ -24,8 +24,8 @@ const createRoom = async (req, res) => {
     });
 
     await room.save();
-    await room.populate('owner', 'username email');
-    await room.populate('members', 'username');
+    await room.populate('owner', 'username email _id');
+    await room.populate('members', 'username _id');
 
     res.status(201).json({
       message: 'Room created successfully',
@@ -51,17 +51,32 @@ const getAllRooms = async (req, res) => {
     }
 
     const rooms = await Room.find(query)
-      .populate('owner', 'username')
-      .populate('members', 'username')
+      .populate('owner', 'username _id')
+      .populate('members', 'username _id')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(Number(limit));
+
+    // Ensure members always have proper _id format
+    const roomsWithProperFormat = rooms.map(room => {
+      const roomObj = room.toObject();
+      // Ensure members have _id property
+      if (roomObj.members && Array.isArray(roomObj.members)) {
+        roomObj.members = roomObj.members.map(member => {
+          if (typeof member === 'string') {
+            return { _id: member };
+          }
+          return member;
+        });
+      }
+      return roomObj;
+    });
 
     const total = await Room.countDocuments(query);
 
     res.json({
       message: 'Rooms retrieved successfully',
-      rooms,
+      rooms: roomsWithProperFormat,
       pagination: {
         total,
         page: Number(page),
@@ -81,8 +96,8 @@ const getRoom = async (req, res) => {
     const { roomId } = req.params;
 
     const room = await Room.findById(roomId)
-      .populate('owner', 'username email')
-      .populate('members', 'username email');
+      .populate('owner', 'username email _id')
+      .populate('members', 'username email _id');
 
     if (!room) {
       return res.status(404).json({ message: 'Room not found' });

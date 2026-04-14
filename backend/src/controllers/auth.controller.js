@@ -1,15 +1,6 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const User = require('../models/User.model');
-const { sendOTPEmail } = require('../services/emailService');
-const { 
-  storeOTP, 
-  getOTPData, 
-  verifyOTP, 
-  deleteOTP, 
-  storeAccessToken
-} = require('../services/otpService');
-const redis = require('../config/redis');
 
 // Generate Access Token (short-lived, in memory)
 const generateAccessToken = (user) => {
@@ -29,159 +20,25 @@ const generateRefreshToken = (id) => {
   });
 };
 
-// @route   POST /api/auth/send-otp
-// @desc    Send OTP to email for registration
-// @access  Public
-exports.sendOtp = async (req, res) => {
-  try {
-    const { email, username, password, passwordConfirm } = req.body;
-
-    // Validation
-    if (!email || !username || !password || !passwordConfirm) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide all required fields',
-      });
-    }
-
-    if (password !== passwordConfirm) {
-      return res.status(400).json({
-        success: false,
-        message: 'Passwords do not match',
-      });
-    }
-
-    // Check if user already exists in database
-    const userExists = await User.findOne({
-      $or: [{ email }, { username }],
-    });
-
-    if (userExists) {
-      return res.status(400).json({
-        success: false,
-        message: 'Email or username already in use',
-      });
-    }
-
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Store OTP in Redis and get the generated OTP
-    const otp = await storeOTP(email, username, hashedPassword);
-
-    // Send OTP email with the generated OTP
-    await sendOTPEmail(email, otp);
-
-    res.status(200).json({
-      success: true,
-      message: 'OTP sent to your email. Please verify to complete registration.',
-    });
-  } catch (error) {
-    console.error('Send OTP error:', error);
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to send OTP',
-    });
-  }
-};
-
-// @route   POST /api/auth/verify-otp
-// @desc    Verify OTP and create user or login if exists
-// @access  Public
-exports.verifyOtp = async (req, res) => {
-  try {
-    const { email, otp } = req.body;
-
-    // Validation
-    if (!email || !otp) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide email and OTP',
-      });
-    }
-
-    // Verify OTP from Redis (ONLY CHECK OTP)
-    const otpResult = await verifyOTP(email, otp);
-
-    if (!otpResult.success) {
-      return res.status(400).json({
-        success: false,
-        message: otpResult.message,
-      });
-    }
-
-    // Get OTP data
-    const otpData = otpResult.data;
-
-    // Check if user already exists by email
-    let user = await User.findOne({ email });
-
-    // If user doesn't exist, create new user
-    if (!user) {
-      user = await User.create({
-        username: otpData.username,
-        email: email,
-        password: otpData.password,
-      });
-    }
-
-    // Delete OTP from Redis after successful verification
-    await deleteOTP(email);
-
-    // Generate tokens
-    const accessToken = generateAccessToken(user);
-    const refreshToken = generateRefreshToken(user._id);
-
-    // Store access token in Redis with user session
-    await storeAccessToken(user._id.toString(), accessToken);
-
-    // Set refresh token in secure httpOnly cookie
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
-
-    res.status(201).json({
-      success: true,
-      message: user.createdAt ? 'Registration successful! Welcome!' : 'Login successful! Welcome back!',
-      accessToken,
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-      },
-    });
-  } catch (error) {
-    console.error('Verify OTP error:', error);
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to verify OTP',
-    });
-  }
-};
-
 // @route   POST /api/auth/register
 // @desc    Register a user (deprecated - use send-otp and verify-otp)
 // @access  Public
 exports.register = async (req, res) => {
   try {
-    const { username, email, password, passwordConfirm } = req.body;
+    const { username, email, password } = req.body;
 
     // Validation
-    if (!username || !email || !password || !passwordConfirm) {
+    if (!username || !email || !password) {
       return res.status(400).json({
         success: false,
         message: 'Please provide all required fields',
       });
     }
 
-    if (password !== passwordConfirm) {
+    if (password.length < 6) {
       return res.status(400).json({
         success: false,
-        message: 'Passwords do not match',
+        message: 'Password must be at least 6 characters',
       });
     }
 
@@ -207,6 +64,10 @@ exports.register = async (req, res) => {
     // Generate tokens
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user._id);
+
+    // Save refresh token to database
+    user.refreshToken = refreshToken;
+    await user.save();
 
     // Set refresh token in secure httpOnly cookie
     res.cookie('refreshToken', refreshToken, {
@@ -273,6 +134,10 @@ exports.login = async (req, res) => {
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user._id);
 
+    // Save refresh token to database
+    user.refreshToken = refreshToken;
+    await user.save();
+
     // Set refresh token in secure httpOnly cookie
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
@@ -292,14 +157,6 @@ exports.login = async (req, res) => {
         email: user.email,
       },
     });
-
-    // Initialize Socket.IO and register user
-    setTimeout(() => {
-      const socket = require('../services/socketService');
-      if (socket) {
-        socket.emit('register-user', { userId: user._id });
-      }
-    }, 500);
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -330,18 +187,32 @@ exports.getMe = async (req, res) => {
 // @route   POST /api/auth/logout
 // @desc    Logout user
 // @access  Private
-exports.logout = (req, res) => {
-  // Clear refresh token cookie
-  res.clearCookie('refreshToken', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-  });
+exports.logout = async (req, res) => {
+  try {
+    // Clear refresh token from database
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { refreshToken: null },
+      { new: true }
+    );
 
-  res.status(200).json({
-    success: true,
-    message: 'User logged out successfully',
-  });
+    // Clear refresh token cookie
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'User logged out successfully',
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
 };
 
 // @route   POST /api/auth/refresh
@@ -361,15 +232,23 @@ exports.refreshToken = async (req, res) => {
     try {
       const decoded = jwt.verify(
         refreshToken,
-        process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET
+        process.env.JWT_REFRESH_SECRET
       );
 
-      // Fetch user data
-      const user = await User.findById(decoded.id);
+      // Fetch user data and verify refresh token matches DB
+      const user = await User.findById(decoded.id).select('+refreshToken');
       if (!user) {
         return res.status(401).json({
           success: false,
           message: 'User not found',
+        });
+      }
+
+      // Verify the refresh token in DB matches the one provided
+      if (user.refreshToken !== refreshToken) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid refresh token',
         });
       }
 
@@ -385,6 +264,72 @@ exports.refreshToken = async (req, res) => {
       return res.status(401).json({
         success: false,
         message: 'Invalid refresh token',
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// @route   POST /api/auth/verify-session
+// @desc    Verify session and restore user from refresh token (for page reload)
+// @access  Public
+exports.verifySession = async (req, res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      return res.status(401).json({
+        success: false,
+        message: 'No refresh token found',
+      });
+    }
+
+    try {
+      const decoded = jwt.verify(
+        refreshToken,
+        process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET
+      );
+
+      // Fetch user data and verify refresh token matches DB
+      const user = await User.findById(decoded.id).select('+refreshToken');
+      
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: 'User not found',
+        });
+      }
+
+      // Verify the refresh token in DB matches the cookie token
+      if (user.refreshToken !== refreshToken) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid refresh token',
+        });
+      }
+
+      // Generate new access token
+      const accessToken = generateAccessToken(user);
+
+      // Return user data and new access token
+      res.status(200).json({
+        success: true,
+        accessToken,
+        user: {
+          id: user._id,
+          username: user.username,
+          email: user.email,
+        },
+      });
+    } catch (error) {
+      res.clearCookie('refreshToken');
+      return res.status(401).json({
+        success: false,
+        message: 'Session verification failed',
       });
     }
   } catch (error) {

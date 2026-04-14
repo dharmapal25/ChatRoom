@@ -1,12 +1,14 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
 import {
   registerUser,
   loginUser,
   logoutUser,
   getCurrentUser,
 } from '../services/authService';
-import { getAccessToken, clearAccessToken } from '../services/api';
+import { getAccessToken, setAccessToken, clearAccessToken } from '../services/api';
 import { initializeSocket, getSocket } from '../services/socketService';
+import API from '../services/api';
 
 // Create Auth Context
 const AuthContext = createContext(null);
@@ -21,18 +23,41 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const token = getAccessToken();
-        if (token) {
-          try {
-            const currentUser = await getCurrentUser();
-            setUser(currentUser);
-          } catch (err) {
-            console.error('Failed to get current user:', err);
-            clearAccessToken();
+        // On page reload, access token is lost from memory, so skip that check
+        // Go directly to verify session from refresh token (cookies)
+        
+        // Use axios directly to avoid interceptor issues during initial auth check
+        try {
+          const response = await axios.post(
+            `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/verify-session`,
+            {},
+            { withCredentials: true, timeout: 5000 }
+          );
+          
+          if (response.data && response.data.success && response.data.accessToken) {
+            // Set the new access token in memory
+            setAccessToken(response.data.accessToken);
+            setUser(response.data.user);
+            console.log('✅ Session restored from refresh token');
+            setLoading(false);
+            return;
+          }
+        } catch (err) {
+          // If verify-session fails, check if it's because backend is down or no session
+          if (err.response?.status === 401) {
+            console.debug('No valid session - user not authenticated');
+          } else if (err.code === 'ECONNREFUSED' || err.message.includes('Network')) {
+            console.debug('Backend not available');
+          } else {
+            console.debug('Session verification error:', err.message);
           }
         }
+        
+        // If we reach here, user is not authenticated
+        clearAccessToken();
       } catch (err) {
         console.error('Auth check error:', err);
+        clearAccessToken();
       } finally {
         setLoading(false);
       }
