@@ -15,7 +15,7 @@ const generateAccessToken = (user) => {
 
 // Generate Refresh Token (long-lived, in cookies)
 const generateRefreshToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET, {
+  return jwt.sign({ id }, process.env.JWT_REFRESH_SECRET, {
     expiresIn: process.env.JWT_REFRESH_EXPIRATION || '7d',
   });
 };
@@ -293,7 +293,7 @@ exports.verifySession = async (req, res) => {
     try {
       const decoded = jwt.verify(
         refreshToken,
-        process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET
+        process.env.JWT_REFRESH_SECRET
       );
 
       // Fetch user data and verify refresh token matches DB
