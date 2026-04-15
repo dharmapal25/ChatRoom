@@ -6,13 +6,23 @@ const app = express();
 
 // CORS Configuration
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      process.env.FRONTEND_URL,
+      'http://localhost:5173',
+      'https://chatroom-hub.vercel.app'
+    ];
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   optionsSuccessStatus: 200,
 };
-
 // Middleware
 app.use(cors(corsOptions));
 app.use(express.json());
