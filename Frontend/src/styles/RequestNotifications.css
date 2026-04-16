@@ -1,12 +1,10 @@
-.request-notifications {
-  margin-bottom: 20px;
-}
+
 
 .request-toggle-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--border-Blue);
   color: white;
   border: none;
-  padding: 10px 16px;
+  padding: 16px 19px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
@@ -15,11 +13,12 @@
   align-items: center;
   gap: 8px;
   transition: all 0.3s ease;
+  position: absolute;
+  z-index: 111;
 }
 
 .request-toggle-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 .badge {
@@ -37,6 +36,9 @@
 }
 
 .requests-panel {
+  position: absolute;
+  top: 18%;
+  z-index: 11111;
   background: white;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
@@ -44,6 +46,7 @@
   padding: 16px;
   max-width: 500px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  /* transition: 2s; */
 }
 
 .requests-panel h3 {

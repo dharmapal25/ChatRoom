@@ -99,6 +99,7 @@ const RequestNotifications = ({ roomId, isAdmin }) => {
           )}
         </div>
       )}
+      
     </div>
   );
 };
