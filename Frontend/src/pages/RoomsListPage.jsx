@@ -69,24 +69,19 @@ export default function RoomsListPage() {
     <div className="rooms-page">
       <div className="rooms-header">
         <div className="rooms-header-left">
+
           <button 
             onClick={() => navigate('/')} 
             className="home-button"
             title="Go to Home"
           >
-            🏠
+            {'<-'}
           </button>
-          <h1>Chat Rooms</h1>
-        </div>
-        <button
-          className="button-primary"
-          onClick={() => navigate('/create-room')}
-        >
-          + Create Room
-        </button>
-      </div>
+          <p className='Chat-Rooms' >Chat Rooms</p>
 
-      <div className="rooms-search">
+        </div>
+
+<div className="rooms-search">
         <input
           type="text"
           placeholder="Search rooms..."
@@ -99,7 +94,31 @@ export default function RoomsListPage() {
         />
       </div>
 
-      {error && <div className="error-message">{error}</div>}
+        <button
+          className="button-create-room"
+          onClick={() => navigate('/create-room')}
+        >
+          + Create Room
+        </button>
+      </div>
+
+      {/* <div className="rooms-search">
+        <input
+          type="text"
+          placeholder="Search rooms..."
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+          className="search-input"
+        />
+      </div> */}
+
+      {error && <div className="error-message" >
+        {error}
+        
+        </div>}
 
       {successMessage && <div className="success-message">{successMessage}</div>}
 

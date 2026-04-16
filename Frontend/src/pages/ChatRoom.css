@@ -4,13 +4,13 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: #f5f5f5;
+  background: var(--bg-color);
   overflow: hidden;
 }
 
 /* Header */
 .chat-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--Surface);
   color: white;
   padding: 20px 30px;
   display: flex;
@@ -80,6 +80,7 @@
   flex: 1;
   overflow: hidden;
   gap: 0;
+
 }
 
 /* Messages Area */
@@ -89,16 +90,18 @@
   flex-direction: column;
   background: white;
   position: relative;
+  background: var(--bg-colors-two);
   overflow: hidden;
+
 }
 
 .notification {
-  background: #4a90e2;
   color: white;
   padding: 12px 20px;
   text-align: center;
   font-size: 0.9rem;
   animation: slideDown 0.3s ease;
+
 }
 
 .messages-list {
@@ -138,6 +141,7 @@
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -202,7 +206,7 @@
 /* Members Sidebar */
 .members-sidebar {
   width: 280px;
-  background: white;
+  background: var(--bg-colors-two);
   border-left: 1px solid #ddd;
   display: flex;
   flex-direction: column;
@@ -214,9 +218,9 @@
   margin: 0;
   padding: 15px 20px;
   border-bottom: 1px solid #eee;
-  color: #333;
+  color: #ffffff;
   font-size: 1.1rem;
-  background: #f9f9f9;
+  background: #0f2f4b;
 }
 
 .members-list {
@@ -274,7 +278,7 @@
 .member-name {
   display: block;
   font-weight: 500;
-  color: #333;
+  color: #f5f5f5;
   font-size: 0.95rem;
   white-space: nowrap;
   overflow: hidden;
@@ -295,13 +299,13 @@
 /* Footer / Message Input */
 .chat-footer {
   padding: 15px 30px;
-  background: white;
+    background: var(--bg-colors-two);
   border-top: 1px solid #ddd;
   flex-shrink: 0;
 }
 
 .error-message {
-  background: #ff6b6b;
+  background: #350a0a4d;
   color: white;
   padding: 10px 15px;
   border-radius: 6px;
@@ -317,10 +321,11 @@
 .message-form input {
   flex: 1;
   padding: 12px 15px;
-  border: 1px solid #ddd;
+  border: 1px solid #ffffff25;
   border-radius: 8px;
   font-size: 0.95rem;
   font-family: inherit;
+  background-color: #ffffffd4;
   transition: border-color 0.3s ease;
 }
 

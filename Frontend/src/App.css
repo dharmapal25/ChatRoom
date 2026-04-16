@@ -54,7 +54,7 @@ body {
 .button-primary {
   background: var(--Primary-color);
   color: var(--font-color);
-
+  /* display: block; */
   width: 200px;
   height: 50px;
   border-radius: 8px;
@@ -63,9 +63,7 @@ body {
   transition: all 0.3s ease;
 }
 
-.button-primary:hover {
-  transform: translateY(-2px);
-}
+
 
 .button-secondary {
   background: var(--bg-color);
@@ -221,10 +219,10 @@ body {
     flex-direction: column;
   }
 
-  .button-primary,
+  /* .button-primary,
   .button-secondary {
     width: 100%;
-  }
+  } */
 
   .dashboard-content {
     padding: 40px 20px;
