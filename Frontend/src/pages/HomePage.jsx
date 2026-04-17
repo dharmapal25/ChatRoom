@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useState } from 'react';
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -10,12 +11,23 @@ export default function HomePage() {
     navigate('/login');
   };
 
+
+  // <html lang="en" data-theme="">
+
   const toggleTheme = () => {
-    const html = document.documentElement;
-    html.setAttribute('data-theme',
-      html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'
-    );
+    let html = document.documentElement;
+    let theme = html.getAttribute('data-theme');
+    let newTheme = theme === 'light' ? 'dark' : 'light'
+    html.setAttribute('data-theme', newTheme );
+    localStorage.setItem("mode",theme)
+
   };
+  
+  let local = localStorage.getItem('mode')
+  let html = document.documentElement;
+  html.setAttribute('data-theme',local === "dark" ? "light" : "dark");
+  
+
 
   return (
     <div className="home-shell">
@@ -28,7 +40,7 @@ export default function HomePage() {
           <button className='theme-toggle-btn' onClick={toggleTheme} >☀</button>
 
           <button
-            className="button-primary"
+            className="button-primary Join-Rooms"
             onClick={() => navigate('/rooms')} >
             Join Rooms
           </button>

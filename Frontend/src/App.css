@@ -48,9 +48,9 @@ body {
 .header-buttons {
   display: flex;
   gap: 20px;
-  align-items: center;
-  width: 25%;
-  /* height: 1vh; */
+  align-items: end;
+  width: 30%;
+  padding: 5px;
 }
 
 .logout {
@@ -291,5 +291,15 @@ body {
   .button-primary,
   .button-secondary {
     width: 100%;
+  }
+  
+  .logout {
+    width: 100% !important;
+    padding: 12px 0 !important;
+  }
+
+  .Join-Rooms {
+    width: 100% !important;
+    padding: 12px 0 !important;
   }
 }
