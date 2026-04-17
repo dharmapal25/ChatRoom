@@ -70,29 +70,32 @@ export default function RoomsListPage() {
       <div className="rooms-header">
         <div className="rooms-header-left">
 
-          <button 
-            onClick={() => navigate('/')} 
+          <button
+            onClick={() => navigate('/')}
             className="home-button"
             title="Go to Home"
           >
-            {'<-'}
+            ←
           </button>
           <p className='Chat-Rooms' >Chat Rooms</p>
 
         </div>
 
-<div className="rooms-search">
-        <input
-          type="text"
-          placeholder="Search rooms..."
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-          className="search-input"
-        />
-      </div>
+<div className="new-div">
+
+
+        <div className="rooms-search">
+          <input
+            type="text"
+            placeholder="Search rooms..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            className="search-input"
+          />
+        </div>
 
         <button
           className="button-create-room"
@@ -101,24 +104,12 @@ export default function RoomsListPage() {
           + Create Room
         </button>
       </div>
-
-      {/* <div className="rooms-search">
-        <input
-          type="text"
-          placeholder="Search rooms..."
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-          className="search-input"
-        />
-      </div> */}
+</div>
 
       {error && <div className="error-message" >
         {error}
-        
-        </div>}
+
+      </div>}
 
       {successMessage && <div className="success-message">{successMessage}</div>}
 
@@ -133,7 +124,7 @@ export default function RoomsListPage() {
             className="button-primary"
             onClick={() => navigate('/create-room')}
           >
-            Create the first room
+            Create Room
           </button>
         </div>
       ) : (
@@ -204,7 +195,7 @@ export default function RoomsListPage() {
                   </button>
                 ) : (
                   <button
-                    className="button-primary"
+                    className="button-primary side-btn"
                     onClick={() => handleJoinRoom(room._id)}
                   >
                     Join Room
@@ -229,7 +220,7 @@ export default function RoomsListPage() {
               <button
                 disabled={page === totalPages}
                 onClick={() => setPage(page + 1)}
-                className="button-secondary"
+                className="button-secondary next-page"
               >
                 Next →
               </button>

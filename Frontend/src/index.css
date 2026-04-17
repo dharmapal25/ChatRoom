@@ -1,23 +1,42 @@
-/* Global Reset */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+/* ── DARK THEME (default) ── */
 :root {
-  
-  /* DARK THEME */
-  --bg-color: #0F172A;
-  --bg-colors-two: #19264451;
-  --Surface: #1E293B;
-  --Primary-color: #667379a8;
-  --font-color: #E2E8F0;
-  --Accent: #A78BFA;
-  --border-Blue: #334155;
-  --card : #57575794;
+  --bg: #0F172A;
+  --bg-alt: #19264451;
+  --surface: #1E293B;
+  --primary: #38bff89a;
+  --text: #E2E8F0;
+  --text-muted: #94A3B8;
+  --accent: #A78BFA;
+  --border: #334155;
+  --card: #1e293bcc;
+  --input-bg: #0f172a99;
+  --shadow: rgba(0, 0, 0, 0.4);
+  --scrollbar: #334155;
+  --scrollbar-hover: #475569;
 }
 
+/* ── LIGHT THEME ── */
+[data-theme="light"] {
+  --bg: #F1F5F9;
+  --bg-alt: #E2E8F0aa;
+  --surface: #FFFFFF;
+  --primary: #1b6a91e0;
+  --text: #1E293B;
+  --text-muted: #64748B;
+  --accent: #7C3AED;
+  --border: #CBD5E1;
+  --card: #FFFFFF;
+  --input-bg: #F8FAFC;
+  --shadow: rgba(0, 0, 0, 0.1);
+  --scrollbar: #CBD5E1;
+  --scrollbar-hover: #94A3B8;
+}
 
 html,
 body,
@@ -28,31 +47,31 @@ body,
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  color: #333;
-  background: #f5f5f5;
+  color: var(--text);
+  background: var(--bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 
-/* Scrollbar styles */
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f0f0f0;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cacaca;
-  /* border-radius: 4px; */
+  background: var(--scrollbar);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #b9b9b9;
+  background: var(--scrollbar-hover);
 }

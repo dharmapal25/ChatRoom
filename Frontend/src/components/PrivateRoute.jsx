@@ -11,7 +11,7 @@ export function PrivateRoute({ children }) {
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'center',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+        background: 'var(--primary)'
       }}>
         <p style={{ color: 'white', fontSize: '1.2rem' }}>Loading...</p>
       </div>

@@ -10,6 +10,13 @@ export default function HomePage() {
     navigate('/login');
   };
 
+  const toggleTheme = () => {
+    const html = document.documentElement;
+    html.setAttribute('data-theme',
+      html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'
+    );
+  };
+
   return (
     <div className="home-shell">
       <header className="home-header">
@@ -18,12 +25,14 @@ export default function HomePage() {
           <h2>Hello {user?.username || 'User'}</h2>
         </div>
         <div className="header-buttons">
+          <button className='theme-toggle-btn' onClick={toggleTheme} >☀</button>
+
           <button
             className="button-primary"
             onClick={() => navigate('/rooms')} >
             Join Rooms
           </button>
-          <button className="button-secondary" onClick={handleLogout}>
+          <button className="button-secondary logout" onClick={handleLogout}>
             Logout
           </button>
         </div>
@@ -56,7 +65,7 @@ export default function HomePage() {
             <p>
               Navigate to the chat rooms section to start a conversation or create your own room.
             </p>
-            <button 
+            <button
               className="button-link"
               onClick={() => navigate('/rooms')}
             >
@@ -70,7 +79,7 @@ export default function HomePage() {
               Want your own space? Create a chat room and invite others to join.
               You'll be the room owner and can manage members.
             </p>
-            <button 
+            <button
               className="button-link"
               onClick={() => navigate('/create-room')}
             >

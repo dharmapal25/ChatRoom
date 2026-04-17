@@ -1,10 +1,8 @@
-
-
 .request-toggle-btn {
-  background: var(--border-Blue);
-  color: white;
-  border: none;
-  padding: 16px 19px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 12px 18px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
@@ -18,47 +16,48 @@
 }
 
 .request-toggle-btn:hover {
+  background: var(--border);
   transform: translateY(-2px);
 }
 
 .badge {
-  background: #ff4757;
+  background: #ef4444;
   color: white;
   border-radius: 50%;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: bold;
-  margin-left: 6px;
+  margin-left: 4px;
 }
 
 .requests-panel {
   position: absolute;
   top: 18%;
-  z-index: 11111;
-  background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  z-index: 9999;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
   margin-top: 12px;
   padding: 16px;
-  max-width: 500px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  /* transition: 2s; */
+  max-width: 480px;
+  width: 90%;
+  box-shadow: 0 8px 24px var(--shadow);
 }
 
 .requests-panel h3 {
   margin: 0 0 16px 0;
-  color: #333;
-  font-size: 16px;
-  border-bottom: 2px solid #f0f0f0;
+  color: var(--text);
+  font-size: 15px;
+  border-bottom: 1px solid var(--border);
   padding-bottom: 12px;
 }
 
 .no-requests {
-  color: #999;
+  color: var(--text-muted);
   text-align: center;
   padding: 20px;
   font-style: italic;
@@ -67,27 +66,26 @@
 .requests-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  max-height: 400px;
+  gap: 10px;
+  max-height: 380px;
   overflow-y: auto;
 }
 
 .request-card {
-  background: #f9f9f9;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
   padding: 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .request-card:hover {
-  background: #f5f5f5;
-  border-color: #667eea;
-  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.2);
+  border-color: var(--primary);
+  box-shadow: 0 2px 8px var(--shadow);
 }
 
 .request-info {
@@ -95,21 +93,21 @@
 }
 
 .request-info h4 {
-  margin: 0 0 4px 0;
-  color: #333;
+  margin: 0 0 4px;
+  color: var(--text);
   font-size: 14px;
   font-weight: 600;
 }
 
 .request-email {
   margin: 2px 0;
-  color: #666;
+  color: var(--text-muted);
   font-size: 12px;
 }
 
 .request-time {
-  margin: 4px 0 0 0;
-  color: #999;
+  margin: 4px 0 0;
+  color: var(--text-muted);
   font-size: 11px;
 }
 
@@ -122,49 +120,47 @@
 .btn-reject {
   padding: 6px 12px;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 12px;
   font-weight: 600;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   white-space: nowrap;
 }
 
 .btn-approve {
-  background: #2ecc71;
+  background: #22c55e;
   color: white;
 }
 
 .btn-approve:hover {
-  background: #27ae60;
+  background: #16a34a;
   transform: scale(1.05);
 }
 
 .btn-reject {
-  background: #e74c3c;
+  background: #ef4444;
   color: white;
 }
 
 .btn-reject:hover {
-  background: #c0392b;
+  background: #dc2626;
   transform: scale(1.05);
 }
 
-/* Scrollbar styling */
 .requests-list::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 
 .requests-list::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
+  background: transparent;
 }
 
 .requests-list::-webkit-scrollbar-thumb {
-  background: #bbb;
+  background: var(--scrollbar);
   border-radius: 10px;
 }
 
 .requests-list::-webkit-scrollbar-thumb:hover {
-  background: #888;
+  background: var(--scrollbar-hover);
 }

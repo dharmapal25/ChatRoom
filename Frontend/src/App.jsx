@@ -10,7 +10,9 @@ import CreateRoomPage from './pages/CreateRoomPage';
 import './App.css';
 
 function App() {
+
   return (
+    <>
     <Router>
       <AuthProvider>
         <Routes>
@@ -52,6 +54,7 @@ function App() {
         </Routes>
       </AuthProvider>
     </Router>
+    </>
   );
 }
 

@@ -1,4 +1,3 @@
-/* Global Styles */
 * {
   margin: 0;
   padding: 0;
@@ -7,24 +6,23 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  color: #333;
-  background: #f5f5f5;
+  color: var(--text);
+  background: var(--bg);
 }
 
-/* Home Page */
+/* ── Home Page ── */
 .home-shell {
   min-height: 100vh;
-  /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
-  background-color: var(--bg-color);
+  background-color: var(--bg);
 }
 
 .home-header {
-  padding: 10px 20px;
-  color: white;
+  padding: 5px 20px;
+  color: var(--text);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 2px solid #ffffff33;
+  border-bottom: 2px solid var(--border);
 }
 
 .home-header h1 {
@@ -41,20 +39,61 @@ body {
 .tagline {
   display: block;
   font-size: 0.9rem;
-  opacity: 0.8;
+  opacity: 0.7;
   text-transform: uppercase;
   letter-spacing: 1px;
+  color: var(--text-muted);
 }
 
 .header-buttons {
   display: flex;
   gap: 20px;
+  align-items: center;
+  width: 25%;
+  /* height: 1vh; */
+}
+
+.logout {
+  background: #ee7777c4 !important;
+}
+
+/* Theme toggle button */
+.theme-toggle-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 2.6px 9px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--border);
 }
 
 .button-primary {
-  background: var(--Primary-color);
-  color: var(--font-color);
-  /* display: block; */
+  background: var(--primary);
+  color: #fff;
+  width: 200px;
+  height: 50px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.button-primary:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+.button-secondary {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
   width: 200px;
   height: 50px;
   border-radius: 8px;
@@ -63,23 +102,11 @@ body {
   transition: all 0.3s ease;
 }
 
-
-
-.button-secondary {
-  background: var(--bg-color);
-  color: white;
-  border: 1px solid #ffffff4d;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
 .button-secondary:hover {
-  background: #ffffff4d;
+  background: var(--border);
 }
 
-/* Dashboard Content */
+/* ── Dashboard ── */
 .dashboard-content {
   max-width: 1200px;
   margin: 0 auto;
@@ -87,11 +114,12 @@ body {
 }
 
 .hero-card {
-  background: white;
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 40px;
   margin-bottom: 40px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 16px var(--shadow);
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 40px;
@@ -100,13 +128,13 @@ body {
 
 .hero-details h2 {
   margin: 0 0 15px 0;
-  color: #333;
+  color: var(--text);
   font-size: 1.8rem;
 }
 
 .hero-details p {
   margin: 0;
-  color: #666;
+  color: var(--text-muted);
   line-height: 1.6;
   font-size: 1.05rem;
 }
@@ -127,16 +155,16 @@ body {
   display: block;
   font-size: 2rem;
   font-weight: 700;
-  color: #667eea;
+  color: var(--primary);
   margin-bottom: 5px;
 }
 
 .hero-stat small {
-  color: #999;
+  color: var(--text-muted);
   font-size: 0.9rem;
 }
 
-/* Card Grid */
+/* ── Card Grid ── */
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -144,33 +172,34 @@ body {
 }
 
 .overview-card {
-  background: white;
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 30px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 16px var(--shadow);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .overview-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 12px 24px var(--shadow);
 }
 
 .overview-card h3 {
   margin: 0 0 15px 0;
-  color: #333;
+  color: var(--text);
   font-size: 1.3rem;
 }
 
 .overview-card p {
   margin: 0 0 20px 0;
-  color: #666;
+  color: var(--text-muted);
   line-height: 1.6;
   font-size: 0.95rem;
 }
 
 .button-link {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--primary);
   color: white;
   padding: 10px 20px;
   border: none;
@@ -183,17 +212,16 @@ body {
 
 .button-link:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  opacity: 0.85;
 }
 
-/* Loading Container */
 .loading-container {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: var(--bg);
+  color: var(--text);
 }
 
 .loading-container p {
@@ -201,13 +229,13 @@ body {
   font-size: 1.1rem;
 }
 
-/* Responsive Design */
+/* ── Responsive ── */
 @media (max-width: 768px) {
   .home-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 20px;
-    padding: 40px 20px;
+    gap: 15px;
+    padding: 20px;
   }
 
   .home-header h1 {
@@ -216,22 +244,25 @@ body {
 
   .header-buttons {
     width: 100%;
-    flex-direction: column;
+    flex-wrap: wrap;
   }
 
-  /* .button-primary,
+  .button-primary,
   .button-secondary {
-    width: 100%;
-  } */
+    flex: 1;
+    min-width: 140px;
+    height: 44px;
+    width: auto;
+  }
 
   .dashboard-content {
-    padding: 40px 20px;
+    padding: 30px 16px;
   }
 
   .hero-card {
     grid-template-columns: 1fr;
     gap: 20px;
-    padding: 25px;
+    padding: 20px;
   }
 
   .hero-info {
@@ -245,5 +276,20 @@ body {
 
   .overview-card {
     padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .header-buttons {
+    flex-direction: column;
+  }
+
+  .button-primary,
+  .button-secondary {
+    width: 100%;
   }
 }
