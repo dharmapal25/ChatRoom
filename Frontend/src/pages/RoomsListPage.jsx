@@ -12,8 +12,7 @@ export default function RoomsListPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
+  // pagination removed: always fetch first 10 rooms
   const [requestStates, setRequestStates] = useState({}); // Track request status per room
   const [pendingRequestsCounts, setPendingRequestsCounts] = useState({}); // Track pending count per room
   const [successMessage, setSuccessMessage] = useState('');
@@ -24,9 +23,8 @@ export default function RoomsListPage() {
       try {
         setLoading(true);
         setError(null);
-        const data = await getAllRooms(page, 10, search);
+        const data = await getAllRooms(1, 10, search);
         setRooms(data.rooms);
-        setTotalPages(data.pagination.pages);
 
         // Fetch pending requests for rooms where user is admin
         const countsMap = {};
@@ -50,7 +48,7 @@ export default function RoomsListPage() {
     };
 
     fetchRooms();
-  }, [page, search, user?._id]);
+  }, [search, user?._id]);
 
   // Handle join room
   const handleJoinRoom = async (roomId) => {
@@ -91,7 +89,7 @@ export default function RoomsListPage() {
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
-              setPage(1);
+              // reset handled implicitly by search dependency
             }}
             className="search-input"
           />
@@ -206,27 +204,7 @@ export default function RoomsListPage() {
             ))}
           </div>
 
-          {totalPages > 1 && (
-            <div className="pagination">
-              <button
-                disabled={page === 1}
-                onClick={() => setPage(page - 1)}
-                className="button-secondary prev-page"
-              >
-                ← Previous
-              </button>
-              <span className="pagination-info">
-                Page {page} of {totalPages}
-              </span>
-              <button
-                disabled={page === totalPages}
-                onClick={() => setPage(page + 1)}
-                className="button-secondary next-page"
-              >
-                Next →
-              </button>
-            </div>
-          )}
+          {/* Pagination removed: showing first 10 rooms only */}
         </>
       )}
     </div>

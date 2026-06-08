@@ -31,10 +31,6 @@ const roomSchema = new mongoose.Schema(
       min: 2,
       max: 1000,
     },
-    isPrivate: {
-      type: Boolean,
-      default: false,
-    },
   },
   {
     timestamps: true,

@@ -5,7 +5,7 @@ const JoinRequest = require('../models/JoinRequest.model');
 // Create a new room
 const createRoom = async (req, res) => {
   try {
-    const { name, description, maxMembers, isPrivate } = req.body;
+    const { name, description, maxMembers } = req.body;
     const userId = req.user.id;
 
     // Validate input
@@ -20,7 +20,6 @@ const createRoom = async (req, res) => {
       owner: userId,
       members: [userId],
       maxMembers: maxMembers || 20,
-      isPrivate: isPrivate || false,
     });
 
     await room.save();
@@ -37,7 +36,7 @@ const createRoom = async (req, res) => {
   }
 };
 
-// Get all rooms (public and private)
+// Get all rooms
 const getAllRooms = async (req, res) => {
   try {
     const { search, page = 1, limit = 10 } = req.query;
@@ -197,7 +196,6 @@ const joinRoom = async (req, res) => {
     res.status(500).json({ message: 'Failed to join room', error: error.message });
   }
 };
-
 
 // Leave room
 const leaveRoom = async (req, res) => {

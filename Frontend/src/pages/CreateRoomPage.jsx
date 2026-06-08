@@ -9,7 +9,6 @@ export default function CreateRoomPage() {
     name: '',
     description: '',
     maxMembers: 20,
-    isPrivate: false,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -106,20 +105,7 @@ export default function CreateRoomPage() {
             />
           </div>
 
-          <div className="form-group checkbox">
-            <label htmlFor="isPrivate">
-              <input
-                id="isPrivate"
-                type="checkbox"
-                name="isPrivate"
-                checked={formData.isPrivate}
-                onChange={handleChange}
-                disabled={loading}
-              />
-              <span>Make this room private</span>
-            </label>
-            <small>Private rooms are not visible in the public room list</small>
-          </div>
+          {/* 'Make this room private' feature removed */}
 
           <div className="form-actions">
             <button

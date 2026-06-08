@@ -299,7 +299,7 @@ exports.verifySession = async (req, res) => {
     try {
       const decoded = jwt.verify(
         refreshToken,
-        process.env.JWT_REFRESH_SECRET || 'your-refresh-secret'
+        process.env.JWT_REFRESH_SECRET 
       );
 
       // Fetch user data and verify refresh token matches DB
