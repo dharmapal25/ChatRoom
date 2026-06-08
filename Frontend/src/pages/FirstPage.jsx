@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import  flash from "../../public/group.png"
-import '../pages/AuthPages.css';
+import '../styles/AuthPages.css';
 
 export default function FirstPage() {
   const navigate = useNavigate();

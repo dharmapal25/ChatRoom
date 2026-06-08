@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getAllRooms, joinRoom } from '../services/roomService';
 import requestService from '../services/requestService';
-import './RoomsPage.css';
+import '../styles/RoomsPage.css';
 
 export default function RoomsListPage() {
   const navigate = useNavigate();

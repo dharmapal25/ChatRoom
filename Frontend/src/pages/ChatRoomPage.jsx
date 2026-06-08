@@ -11,7 +11,7 @@ import {
   onUserLeft,
 } from '../services/socketService';
 import RequestNotifications from '../components/RequestNotifications';
-import './ChatRoom.css';
+import '../styles/ChatRoom.css';
 
 export default function ChatRoomPage() {
   const { roomId } = useParams();

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import './AuthPages.css';
+import '../styles/AuthPages.css';
 
 export default function RegisterPage() {
   const navigate = useNavigate();

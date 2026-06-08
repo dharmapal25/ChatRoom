@@ -8,7 +8,7 @@ import HomePage from './pages/HomePage';
 import RoomsListPage from './pages/RoomsListPage';
 import ChatRoomPage from './pages/ChatRoomPage';
 import CreateRoomPage from './pages/CreateRoomPage';
-import './App.css';
+import './styles/App.css';
 
 function App() {
 

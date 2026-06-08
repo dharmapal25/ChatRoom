@@ -109,7 +109,7 @@
   color: var(--primary);
   text-decoration: none;
   font-weight: 600;
-  transition: color 0.3s ease;
+  transition: color 0.2s ease;
 }
 
 .link:hover {
@@ -396,41 +396,3 @@
   .hero-text h1 {
     font-size: 1.3rem;
   }
-
-  .hero-subtitle {
-    font-size: 0.95rem;
-  }
-
-  .feature-item {
-    gap: 12px;
-  }
-
-  .feature-icon {
-    font-size: 1.4rem;
-  }
-
-  .btn-cta {
-    padding: 10px 20px;
-    font-size: 0.9rem;
-  }
-
-  .hero-image {
-    min-height: 250px;
-  }
-}
-
-@media (max-width: 480px) {
-  .auth-box {
-    padding: 25px;
-  }
-
-  .auth-box h2 {
-    font-size: 1.4rem;
-    margin-bottom: 20px;
-  }
-
-  .form-group input {
-    padding: 10px 12px;
-    font-size: 0.95rem;
-  }
-}

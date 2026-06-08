@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createRoom } from '../services/roomService';
-import './CreateRoom.css';
+import '../styles/CreateRoom.css';
 
 export default function CreateRoomPage() {
   const navigate = useNavigate();
@@ -105,7 +105,7 @@ export default function CreateRoomPage() {
             />
           </div>
 
-          {/* 'Make this room private' feature removed */}
+          
 
           <div className="form-actions">
             <button
