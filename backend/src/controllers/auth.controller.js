@@ -28,13 +28,17 @@ const getMailTransporter = () => {
   }
 
   mailTransporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
+    family: 4,
     pool: true,
     maxConnections: 2,
     maxMessages: 50,
     connectionTimeout: 10000,
     greetingTimeout: 10000,
     socketTimeout: 15000,
+    requireTLS: true,
     auth: { user, pass },
   });
 
@@ -242,9 +246,10 @@ exports.sendOtp = async (req, res) => {
       expiresAt,
     });
   } catch (error) {
+    console.error('Send OTP email error:', error.message);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: 'Unable to send OTP right now. Please try again in a few seconds.',
     });
   }
 };
