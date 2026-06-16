@@ -6,6 +6,7 @@ const User = require('../models/User.model');
 
 const pendingOtps = new Map();
 const OTP_EXPIRY_MS = 10 * 60 * 1000;
+let mailTransporter = null;
 
 const getOtpHash = (email, otp) => {
   return crypto
@@ -22,10 +23,22 @@ const getMailTransporter = () => {
     throw new Error('Gmail credentials missing. Add GMAIL_USER and GMAIL_APP_PASSWORD to .env');
   }
 
-  return nodemailer.createTransport({
+  if (mailTransporter) {
+    return mailTransporter;
+  }
+
+  mailTransporter = nodemailer.createTransport({
     service: 'gmail',
+    pool: true,
+    maxConnections: 2,
+    maxMessages: 50,
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
     auth: { user, pass },
   });
+
+  return mailTransporter;
 };
 
 const sendOtpEmail = async (email, username, otp) => {
