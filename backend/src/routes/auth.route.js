@@ -2,6 +2,8 @@ const express = require('express');
 const { protect } = require('../middleware/auth');
 const {
   register,
+  sendOtp,
+  verifyOtp,
   login,
   getMe,
   logout,
@@ -15,6 +17,16 @@ const router = express.Router();
 // @desc    Register a user (fallback/direct)
 // @access  Public
 router.post('/register', register);
+
+// @route   POST /api/auth/send-otp
+// @desc    Send registration OTP to email
+// @access  Public
+router.post('/send-otp', sendOtp);
+
+// @route   POST /api/auth/verify-otp
+// @desc    Verify OTP and register user
+// @access  Public
+router.post('/verify-otp', verifyOtp);
 
 // @route   POST /api/auth/login
 // @desc    Login user

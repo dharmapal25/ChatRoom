@@ -112,111 +112,7 @@ body {
   padding: 60px 40px;
 }
 
-.hero-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 40px;
-  margin-bottom: 40px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px;
-  align-items: center;
-}
-
-.hero-details h2 {
-  margin: 0 0 15px 0;
-  color: var(--text);
-  font-size: 1.8rem;
-}
-
-.hero-details p {
-  margin: 0;
-  color: var(--text-muted);
-  line-height: 1.6;
-  font-size: 1.05rem;
-}
-
-.hero-info {
-  display: flex;
-  gap: 30px;
-}
-
-.hero-stat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-.hero-stat span {
-  display: block;
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--primary);
-  margin-bottom: 5px;
-}
-
-.hero-stat small {
-  color: var(--text-muted);
-  font-size: 0.9rem;
-}
-
 /* ── Card Grid ── */
-.card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 25px;
-}
-
-.overview-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 30px;
-  transition: transform 0.3s ease;
-}
-
-.overview-card:hover {
-  transform: translateY(-5px);
-}
-
-.overview-card h3 {
-  margin: 0 0 15px 0;
-  color: var(--text);
-  font-size: 1.3rem;
-}
-
-.overview-card p {
-  margin: 0 0 20px 0;
-  color: var(--text-muted);
-  line-height: 1.6;
-  font-size: 0.95rem;
-}
-
-.button-link {
-  background: var(--primary);
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.95rem;
-}
-
-.button-link:hover {
-  transform: translateY(-2px);
-  opacity: 0.85;
-}
-
-/* Hero image - no effects */
-.hero-details img,
-.overview-card img {
-  transition: none;
-}
-
 .loading-container {
   min-height: 100vh;
   display: flex;
@@ -261,33 +157,6 @@ body {
     padding: 30px 16px;
   }
 
-  .hero-card {
-    display: flex;
-    flex-direction: column-reverse;
-    gap: 20px;
-    padding: 20px;
-  }
-
-  .hero-card> :first-child {
-    order: 1;
-  }
-
-  .hero-card> :last-child {
-    order: -1;
-  }
-
-  .hero-info {
-    justify-content: space-around;
-  }
-
-  .card-grid {
-    grid-template-columns: 1fr;
-    gap: 15px;
-  }
-
-  .overview-card {
-    padding: 20px;
-  }
 }
 
 @media (max-width: 480px) {
@@ -396,4 +265,118 @@ body {
   opacity: 0.9;
   transform: translateY(-2px);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.action-btn.secondary {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.action-btn.secondary:hover {
+  background: var(--border);
+  transform: translateY(-2px);
+}
+
+.dashboard-image {
+  flex: 0 1 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dashboard-image img {
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  object-fit: contain;
+}
+
+.user-info-section {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.user-card {
+  width: min(100%, 720px);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: 0 12px 24px var(--shadow);
+}
+
+.user-card h2 {
+  margin: 0 0 20px 0;
+  color: var(--text);
+}
+
+.user-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.detail-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  min-width: 0;
+}
+
+.label {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+}
+
+.value {
+  display: block;
+  color: var(--text);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 900px) {
+  .dashboard-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 32px;
+    padding: 20px 0;
+  }
+
+  .dashboard-intro {
+    width: 100%;
+  }
+
+  .dashboard-image {
+    align-self: center;
+    flex-basis: auto;
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .dashboard-text h1 {
+    font-size: 2rem;
+  }
+
+  .dashboard-actions {
+    flex-direction: column;
+  }
+
+  .action-btn {
+    width: 100%;
+  }
+
+  .user-card {
+    padding: 20px;
+  }
+
+  .user-details {
+    grid-template-columns: 1fr;
+  }
 }

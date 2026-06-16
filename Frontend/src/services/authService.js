@@ -13,6 +13,29 @@ export const registerUser = async (userData) => {
   }
 };
 
+// Send registration OTP
+export const sendRegistrationOtp = async (userData) => {
+  try {
+    const response = await API.post('/auth/send-otp', userData);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || { message: 'Failed to send OTP' };
+  }
+};
+
+// Verify registration OTP and create user
+export const verifyRegistrationOtp = async (userData) => {
+  try {
+    const response = await API.post('/auth/verify-otp', userData);
+    if (response.data.accessToken) {
+      setAccessToken(response.data.accessToken);
+    }
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || { message: 'OTP verification failed' };
+  }
+};
+
 // Login user
 export const loginUser = async (credentials) => {
   try {

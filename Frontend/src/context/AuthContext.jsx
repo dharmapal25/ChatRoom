@@ -2,6 +2,8 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 import axios from 'axios';
 import {
   registerUser,
+  sendRegistrationOtp,
+  verifyRegistrationOtp,
   loginUser,
   logoutUser,
   getCurrentUser,
@@ -99,6 +101,38 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  const sendOtp = useCallback(async (username, email, password) => {
+    try {
+      setError(null);
+      return await sendRegistrationOtp({ username, email, password });
+    } catch (err) {
+      const errorMsg = err.message || 'Failed to send OTP';
+      setError(errorMsg);
+      throw err;
+    }
+  }, []);
+
+  const verifyOtp = useCallback(async (username, email, password, otp) => {
+    try {
+      setError(null);
+      const response = await verifyRegistrationOtp({ username, email, password, otp });
+
+      setTimeout(() => {
+        const socket = initializeSocket();
+        if (socket && response.user) {
+          socket.emit('register-user', { userId: response.user.id || response.user._id });
+        }
+      }, 500);
+
+      setUser(response.user);
+      return response;
+    } catch (err) {
+      const errorMsg = err.message || 'OTP verification failed';
+      setError(errorMsg);
+      throw err;
+    }
+  }, []);
+
   // Login handler
   const login = useCallback(async (email, password) => {
     try {
@@ -141,6 +175,8 @@ export function AuthProvider({ children }) {
     error,
     isAuthenticated,
     register,
+    sendOtp,
+    verifyOtp,
     login,
     logout,
   };

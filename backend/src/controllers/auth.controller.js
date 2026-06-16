@@ -1,6 +1,95 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 const User = require('../models/User.model');
+
+const pendingOtps = new Map();
+const OTP_EXPIRY_MS = 10 * 60 * 1000;
+
+const getOtpHash = (email, otp) => {
+  return crypto
+    .createHmac('sha256', process.env.OTP_SECRET || process.env.JWT_SECRET || 'otp-secret')
+    .update(`${email.toLowerCase()}:${otp}`)
+    .digest('hex');
+};
+
+const getMailTransporter = () => {
+  const user = process.env.GMAIL_USER || process.env.EMAIL_USER;
+  const pass = process.env.GMAIL_APP_PASSWORD || process.env.EMAIL_PASS;
+
+  if (!user || !pass) {
+    throw new Error('Gmail credentials missing. Add GMAIL_USER and GMAIL_APP_PASSWORD to .env');
+  }
+
+  return nodemailer.createTransport({
+    service: 'gmail',
+    auth: { user, pass },
+  });
+};
+
+const sendOtpEmail = async (email, username, otp) => {
+  const from = process.env.GMAIL_USER || process.env.EMAIL_USER;
+  const transporter = getMailTransporter();
+
+  await transporter.sendMail({
+    from: `"ChatRoom" <${from}>`,
+    to: email,
+    subject: 'Your ChatRoom verification OTP',
+    text: `Hi ${username}, your ChatRoom verification OTP is ${otp}. It expires in 10 minutes.`,
+    html: `
+      <div style="font-family: Arial, sans-serif; color: #111827;">
+        <h2>Verify your ChatRoom account</h2>
+        <p>Hi ${username}, use this 6 digit OTP to finish creating your account.</p>
+        <p style="font-size: 28px; font-weight: 700; letter-spacing: 6px;">${otp}</p>
+        <p>This OTP expires in 10 minutes.</p>
+      </div>
+    `,
+  });
+};
+
+const validateRegistrationInput = (username, email, password) => {
+  if (!username || !email || !password) {
+    return 'Please provide all required fields';
+  }
+
+  if (username.trim().length < 3) {
+    return 'Username must be at least 3 characters';
+  }
+
+  if (password.length < 6) {
+    return 'Password must be at least 6 characters';
+  }
+
+  return null;
+};
+
+const sendAuthResponse = async (res, user, statusCode, message) => {
+  const accessToken = generateAccessToken(user);
+  const refreshToken = generateRefreshToken(user._id);
+
+  user.refreshToken = refreshToken;
+  await user.save();
+
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    secure: process.env.NODE_ENV === "production" ? true : false,
+    maxAge: 7 * 24 * 60 * 60 * 1000
+  });
+
+  return res.status(statusCode).json({
+    success: true,
+    message,
+    accessToken,
+    user: {
+      id: user._id,
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+    },
+  });
+};
 
 // Generate Access Token (short-lived, in memory)
 const generateAccessToken = (user) => {
@@ -88,6 +177,136 @@ exports.register = async (req, res) => {
         email: user.email,
       },
     });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// @route   POST /api/auth/send-otp
+// @desc    Send registration OTP to user's Gmail/email
+// @access  Public
+exports.sendOtp = async (req, res) => {
+  try {
+    const { username, email, password } = req.body;
+    const normalizedEmail = email?.toLowerCase().trim();
+    const validationError = validateRegistrationInput(username, normalizedEmail, password);
+
+    if (validationError) {
+      return res.status(400).json({
+        success: false,
+        message: validationError,
+      });
+    }
+
+    const userExists = await User.findOne({
+      $or: [{ email: normalizedEmail }, { username: username.trim() }],
+    });
+
+    if (userExists) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email or username already in use',
+      });
+    }
+
+    const otp = crypto.randomInt(100000, 1000000).toString();
+    const expiresAt = Date.now() + OTP_EXPIRY_MS;
+
+    pendingOtps.set(normalizedEmail, {
+      otpHash: getOtpHash(normalizedEmail, otp),
+      expiresAt,
+      attempts: 0,
+    });
+
+    await sendOtpEmail(normalizedEmail, username.trim(), otp);
+
+    res.status(200).json({
+      success: true,
+      message: 'OTP sent to your email',
+      expiresAt,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// @route   POST /api/auth/verify-otp
+// @desc    Verify registration OTP and create user
+// @access  Public
+exports.verifyOtp = async (req, res) => {
+  try {
+    const { username, email, password, otp } = req.body;
+    const normalizedEmail = email?.toLowerCase().trim();
+    const validationError = validateRegistrationInput(username, normalizedEmail, password);
+
+    if (validationError) {
+      return res.status(400).json({
+        success: false,
+        message: validationError,
+      });
+    }
+
+    if (!otp || !/^\d{6}$/.test(otp)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please enter a valid 6 digit OTP',
+      });
+    }
+
+    const pendingOtp = pendingOtps.get(normalizedEmail);
+
+    if (!pendingOtp || pendingOtp.expiresAt < Date.now()) {
+      pendingOtps.delete(normalizedEmail);
+      return res.status(400).json({
+        success: false,
+        message: 'OTP expired. Please request a new OTP',
+      });
+    }
+
+    if (pendingOtp.attempts >= 5) {
+      pendingOtps.delete(normalizedEmail);
+      return res.status(429).json({
+        success: false,
+        message: 'Too many invalid attempts. Please request a new OTP',
+      });
+    }
+
+    const submittedOtpHash = getOtpHash(normalizedEmail, otp);
+
+    if (submittedOtpHash !== pendingOtp.otpHash) {
+      pendingOtp.attempts += 1;
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid OTP',
+      });
+    }
+
+    const userExists = await User.findOne({
+      $or: [{ email: normalizedEmail }, { username: username.trim() }],
+    });
+
+    if (userExists) {
+      pendingOtps.delete(normalizedEmail);
+      return res.status(400).json({
+        success: false,
+        message: 'Email or username already in use',
+      });
+    }
+
+    const user = await User.create({
+      username: username.trim(),
+      email: normalizedEmail,
+      password,
+    });
+
+    pendingOtps.delete(normalizedEmail);
+    return sendAuthResponse(res, user, 201, 'User registered successfully');
   } catch (error) {
     res.status(500).json({
       success: false,
