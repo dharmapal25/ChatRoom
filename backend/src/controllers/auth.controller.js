@@ -65,6 +65,36 @@ const sendOtpEmail = async (email, username, otp) => {
   });
 };
 
+const getOtpEmailErrorResponse = (error) => {
+  const message = error.message || '';
+
+  if (message.includes('Gmail credentials missing')) {
+    return {
+      statusCode: 500,
+      message: 'Gmail sender is not configured on the server.',
+    };
+  }
+
+  if (error.responseCode === 535 || error.code === 'EAUTH') {
+    return {
+      statusCode: 500,
+      message: 'Gmail login failed. Please check the Gmail App Password in server environment variables.',
+    };
+  }
+
+  if (['ECONNECTION', 'ETIMEDOUT', 'ESOCKET', 'ENETUNREACH'].includes(error.code)) {
+    return {
+      statusCode: 503,
+      message: 'Email server connection failed. Please try again in a few seconds.',
+    };
+  }
+
+  return {
+    statusCode: 500,
+    message: 'Unable to send OTP right now. Please try again in a few seconds.',
+  };
+};
+
 const validateRegistrationInput = (username, email, password) => {
   if (!username || !email || !password) {
     return 'Please provide all required fields';
@@ -246,10 +276,17 @@ exports.sendOtp = async (req, res) => {
       expiresAt,
     });
   } catch (error) {
-    console.error('Send OTP email error:', error.message);
-    res.status(500).json({
+    pendingOtps.delete(req.body.email?.toLowerCase().trim());
+    console.error('Send OTP email error:', {
+      code: error.code,
+      responseCode: error.responseCode,
+      message: error.message,
+    });
+
+    const emailError = getOtpEmailErrorResponse(error);
+    res.status(emailError.statusCode).json({
       success: false,
-      message: 'Unable to send OTP right now. Please try again in a few seconds.',
+      message: emailError.message,
     });
   }
 };
