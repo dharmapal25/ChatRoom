@@ -45,23 +45,67 @@ const getMailTransporter = () => {
   return mailTransporter;
 };
 
+const buildOtpEmail = (username, otp) => ({
+  subject: 'Your ChatRoom verification OTP',
+  text: `Hi ${username}, your ChatRoom verification OTP is ${otp}. It expires in 10 minutes.`,
+  html: `
+    <div style="font-family: Arial, sans-serif; color: #111827;">
+      <h2>Verify your ChatRoom account</h2>
+      <p>Hi ${username}, use this 6 digit OTP to finish creating your account.</p>
+      <p style="font-size: 28px; font-weight: 700; letter-spacing: 6px;">${otp}</p>
+      <p>This OTP expires in 10 minutes.</p>
+    </div>
+  `,
+});
+
+const sendOtpWithResend = async (email, username, otp) => {
+  const { subject, text, html } = buildOtpEmail(username, otp);
+  const from = process.env.EMAIL_FROM || 'ChatRoom <onboarding@resend.dev>';
+
+  if (typeof fetch !== 'function') {
+    throw new Error('Fetch API is not available in this Node version');
+  }
+
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from,
+      to: email,
+      subject,
+      text,
+      html,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    const error = new Error(`Resend email failed: ${errorBody}`);
+    error.code = 'ERESEND';
+    error.responseCode = response.status;
+    throw error;
+  }
+};
+
 const sendOtpEmail = async (email, username, otp) => {
+  if (process.env.RESEND_API_KEY) {
+    await sendOtpWithResend(email, username, otp);
+    return;
+  }
+
   const from = process.env.GMAIL_USER || process.env.EMAIL_USER;
   const transporter = getMailTransporter();
+  const { subject, text, html } = buildOtpEmail(username, otp);
 
   await transporter.sendMail({
     from: `"ChatRoom" <${from}>`,
     to: email,
-    subject: 'Your ChatRoom verification OTP',
-    text: `Hi ${username}, your ChatRoom verification OTP is ${otp}. It expires in 10 minutes.`,
-    html: `
-      <div style="font-family: Arial, sans-serif; color: #111827;">
-        <h2>Verify your ChatRoom account</h2>
-        <p>Hi ${username}, use this 6 digit OTP to finish creating your account.</p>
-        <p style="font-size: 28px; font-weight: 700; letter-spacing: 6px;">${otp}</p>
-        <p>This OTP expires in 10 minutes.</p>
-      </div>
-    `,
+    subject,
+    text,
+    html,
   });
 };
 
@@ -79,6 +123,13 @@ const getOtpEmailErrorResponse = (error) => {
     return {
       statusCode: 500,
       message: 'Gmail login failed. Please check the Gmail App Password in server environment variables.',
+    };
+  }
+
+  if (error.code === 'ERESEND') {
+    return {
+      statusCode: error.responseCode || 500,
+      message: 'Email API failed. Please check RESEND_API_KEY and EMAIL_FROM on the server.',
     };
   }
 
