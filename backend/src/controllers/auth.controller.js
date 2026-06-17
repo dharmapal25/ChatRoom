@@ -28,6 +28,9 @@ const getMailTransporter = () => {
   }
 
   mailTransporter = nodemailer.createTransport({
+    // enable logger/debug to help troubleshoot delivery issues
+    logger: true,
+    debug: true,
     host: 'smtp.gmail.com',
     port: 587,
     secure: false,
@@ -58,55 +61,46 @@ const buildOtpEmail = (username, otp) => ({
   `,
 });
 
-const sendOtpWithResend = async (email, username, otp) => {
-  const { subject, text, html } = buildOtpEmail(username, otp);
-  const from = process.env.EMAIL_FROM || 'ChatRoom <onboarding@resend.dev>';
+// Resend integration removed: using SMTP transporter via nodemailer only
 
-  if (typeof fetch !== 'function') {
-    throw new Error('Fetch API is not available in this Node version');
+const sendOtpEmail = async (email, username, otp) => {
+  const from = process.env.GMAIL_USER || process.env.EMAIL_USER;
+  const transporter = getMailTransporter();
+  const { subject, text, html } = buildOtpEmail(username, otp);
+  // Verify transporter connection and log result to help debugging
+  try {
+    // verify() ensures SMTP connection can be established
+    await transporter.verify();
+    console.log('Mail transporter verified successfully');
+  } catch (verifyErr) {
+    console.error('Mail transporter verification failed:', verifyErr);
   }
 
-  const response = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      from,
+  try {
+    const info = await transporter.sendMail({
+      from: `"ChatRoom" <${from}>`,
       to: email,
       subject,
       text,
       html,
-    }),
-  });
+    });
 
-  if (!response.ok) {
-    const errorBody = await response.text();
-    const error = new Error(`Resend email failed: ${errorBody}`);
-    error.code = 'ERESEND';
-    error.responseCode = response.status;
-    throw error;
+    // Log detailed send result so you can inspect accepted/rejected/envelope
+    console.log('sendMail result:', {
+      messageId: info.messageId,
+      accepted: info.accepted,
+      rejected: info.rejected,
+      envelope: info.envelope,
+      response: info.response,
+    });
+
+    if (info.rejected && info.rejected.length > 0) {
+      console.warn('Some recipients were rejected by SMTP server:', info.rejected);
+    }
+  } catch (sendErr) {
+    console.error('Error sending OTP email:', sendErr);
+    throw sendErr;
   }
-};
-
-const sendOtpEmail = async (email, username, otp) => {
-  if (process.env.RESEND_API_KEY) {
-    await sendOtpWithResend(email, username, otp);
-    return;
-  }
-
-  const from = process.env.GMAIL_USER || process.env.EMAIL_USER;
-  const transporter = getMailTransporter();
-  const { subject, text, html } = buildOtpEmail(username, otp);
-
-  await transporter.sendMail({
-    from: `"ChatRoom" <${from}>`,
-    to: email,
-    subject,
-    text,
-    html,
-  });
 };
 
 const getOtpEmailErrorResponse = (error) => {
@@ -126,12 +120,7 @@ const getOtpEmailErrorResponse = (error) => {
     };
   }
 
-  if (error.code === 'ERESEND') {
-    return {
-      statusCode: error.responseCode || 500,
-      message: 'Email API failed. Please check RESEND_API_KEY and EMAIL_FROM on the server.',
-    };
-  }
+  // Resend-specific errors removed: fall through to generic messages
 
   if (['ECONNECTION', 'ETIMEDOUT', 'ESOCKET', 'ENETUNREACH'].includes(error.code)) {
     return {
