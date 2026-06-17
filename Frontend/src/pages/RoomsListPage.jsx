@@ -12,12 +12,10 @@ export default function RoomsListPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState('');
-  // pagination removed: always fetch first 10 rooms
-  const [requestStates, setRequestStates] = useState({}); // Track request status per room
-  const [pendingRequestsCounts, setPendingRequestsCounts] = useState({}); // Track pending count per room
+  const [requestStates, setRequestStates] = useState({});
+  const [pendingRequestsCounts, setPendingRequestsCounts] = useState({});
   const [successMessage, setSuccessMessage] = useState('');
 
-  // Fetch rooms
   useEffect(() => {
     const fetchRooms = async () => {
       try {
@@ -26,7 +24,6 @@ export default function RoomsListPage() {
         const data = await getAllRooms(1, 10, search);
         setRooms(data.rooms);
 
-        // Fetch pending requests for rooms where user is admin
         const countsMap = {};
         for (const room of data.rooms) {
           if (room.owner._id === user?._id) {
@@ -50,12 +47,11 @@ export default function RoomsListPage() {
     fetchRooms();
   }, [search, user?._id]);
 
-  // Handle join room
   const handleJoinRoom = async (roomId) => {
     try {
       await joinRoom(roomId);
       setRequestStates({ ...requestStates, [roomId]: 'pending' });
-      setSuccessMessage('Request sent! The room admin will review it.');
+      setSuccessMessage('Request sent. The room admin will review it.');
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err) {
       setError(err.message || 'Failed to send join request');
@@ -67,48 +63,34 @@ export default function RoomsListPage() {
     <div className="rooms-page">
       <div className="rooms-header">
         <div className="rooms-header-left">
-
           <button
             onClick={() => navigate('/dashboard')}
             className="home-button"
-            title="Go to Home"
+            title="Go to dashboard"
           >
-            ←
+            Back
           </button>
-          <p className='Chat-Rooms' >Chat Rooms</p>
-
+          <p className="Chat-Rooms">Chat Rooms</p>
         </div>
 
-<div className="new-div">
+        <div className="new-div">
+          <div className="rooms-search">
+            <input
+              type="text"
+              placeholder="Search rooms..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="search-input"
+            />
+          </div>
 
-
-        <div className="rooms-search">
-          <input
-            type="text"
-            placeholder="Search rooms..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              // reset handled implicitly by search dependency
-            }}
-            className="search-input"
-          />
+          <button className="button-create-room" onClick={() => navigate('/create-room')}>
+            Create Room
+          </button>
         </div>
-
-        <button
-          className="button-create-room"
-          onClick={() => navigate('/create-room')}
-        >
-          + Create Room
-        </button>
       </div>
-</div>
 
-      {error && <div className="error-message" >
-        {error}
-
-      </div>}
-
+      {error && <div className="error-message">{error}</div>}
       {successMessage && <div className="success-message">{successMessage}</div>}
 
       {loading ? (
@@ -127,85 +109,75 @@ export default function RoomsListPage() {
           </button>
         </div>
       ) : (
-        <>
-          <div className="rooms-grid">
-            {rooms.map((room) => (
-              <div key={room._id} className="room-card">
-                <div className="room-card-header">
-                  <h3>{room.name}</h3>
-                  <div className="room-card-badges">
-                    <span className="room-members">{room.members.length}/{room.maxMembers}</span>
-                    {room.owner._id === user?._id && pendingRequestsCounts[room._id] > 0 && (
-                      <span className="pending-requests-badge">{pendingRequestsCounts[room._id]} requests</span>
-                    )}
-                  </div>
-                </div>
-
-                <p className="room-description">{room.description || 'No description'}</p>
-
-                <div className="room-info">
-                  <p className="room-owner">Owner: <span className='room-user' >{room.owner.username}</span> </p>
-                  <small className="room-created">
-                    Created: {new Date(room.createdAt).toLocaleDateString()}
-                  </small>
-                </div>
-
-                <div className="room-members-preview">
-                  <span className="members-label">Members:</span>
-                  {room.members.slice(0, 3).map((member) => (
-                    <span key={member._id} className="member-badge">
-                      {member.username}
+        <div className="rooms-grid">
+          {rooms.map((room) => (
+            <div key={room._id} className="room-card">
+              <div className="room-card-header">
+                <h3>{room.name}</h3>
+                <div className="room-card-badges">
+                  <span className="room-members">{room.members.length}/{room.maxMembers}</span>
+                  {room.owner._id === user?._id && pendingRequestsCounts[room._id] > 0 && (
+                    <span className="pending-requests-badge">
+                      {pendingRequestsCounts[room._id]} requests
                     </span>
-                  ))}
-                  {room.members.length > 3 && (
-                    <span className="member-badge">+{room.members.length - 3}</span>
                   )}
                 </div>
+              </div>
 
-                {room.members && user && room.members.some((m) => {
-                  // Safely handle both string and object formats
-                  try {
-                    const memberId = (typeof m === 'string' ? m : m?._id)?.toString();
-                    const userId = user._id?.toString();
-                    return memberId && userId && memberId === userId;
-                  } catch (e) {
-                    return false;
-                  }
-                }) ? (
-                  <button
-                    className="button-secondary open-chat"
-                    onClick={() => navigate(`/chat/${room._id}`)}
-                  >
-                    Open Chat
-                  </button>
-                ) : requestStates[room._id] === 'pending' ? (
-                  <button
-                    className="button-pending"
-                    disabled
-                  >
-                    ⏳ Request Pending
-                  </button>
-                ) : requestStates[room._id] === 'rejected' ? (
-                  <button
-                    className="button-rejected"
-                    disabled
-                  >
-                    ✕ Request Rejected
-                  </button>
-                ) : (
-                  <button
-                    className="button-primary side-btn"
-                    onClick={() => handleJoinRoom(room._id)}
-                  >
-                    Join Room
-                  </button>
+              <p className="room-description">{room.description || 'No description'}</p>
+
+              <div className="room-info">
+                <p className="room-owner">
+                  Owner: <span className="room-user">{room.owner.username}</span>
+                </p>
+                <small className="room-created">
+                  Created: {new Date(room.createdAt).toLocaleDateString()}
+                </small>
+              </div>
+
+              <div className="room-members-preview">
+                <span className="members-label">Members:</span>
+                {room.members.slice(0, 3).map((member) => (
+                  <span key={member._id} className="member-badge">
+                    {member.username}
+                  </span>
+                ))}
+                {room.members.length > 3 && (
+                  <span className="member-badge">+{room.members.length - 3}</span>
                 )}
               </div>
-            ))}
-          </div>
 
-          {/* Pagination removed: showing first 10 rooms only */}
-        </>
+              {room.members && user && room.members.some((m) => {
+                try {
+                  const memberId = (typeof m === 'string' ? m : m?._id)?.toString();
+                  const userId = user._id?.toString();
+                  return memberId && userId && memberId === userId;
+                } catch (e) {
+                  return false;
+                }
+              }) ? (
+                <button
+                  className="button-secondary open-chat"
+                  onClick={() => navigate(`/chat/${room._id}`)}
+                >
+                  Open Chat
+                </button>
+              ) : requestStates[room._id] === 'pending' ? (
+                <button className="button-pending" disabled>
+                  Request Pending
+                </button>
+              ) : requestStates[room._id] === 'rejected' ? (
+                <button className="button-rejected" disabled>
+                  Request Rejected
+                </button>
+              ) : (
+                <button className="button-primary side-btn" onClick={() => handleJoinRoom(room._id)}>
+                  Join Room
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

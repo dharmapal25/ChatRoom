@@ -1,61 +1,72 @@
 * {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
 }
 
-/* ── DARK THEME (default) ── */
 :root {
-  --bg: #0F172A;
-  --bg-alt: #19264451;
-  --surface: #1E293B;
-  --primary: #38bff89a;
-  --text: #E2E8F0;
-  --text-muted: #94A3B8;
-  --accent: #A78BFA;
-  --border: #334155;
-  --card: #1e293bcc;
-  --input-bg: #0f172a99;
-  --shadow: rgba(0, 0, 0, 0.4);
-  --scrollbar: #334155;
-  --scrollbar-hover: #475569;
-}
-
-/* ── LIGHT THEME ── */
-[data-theme="light"] {
-  --bg: #F1F5F9;
-  --bg-alt: #E2E8F0aa;
-  --surface: #FFFFFF;
-  --primary: #1b6a91e0;
-  --text: #1E293B;
-  --text-muted: #64748B;
-  --accent: #7C3AED;
-  --border: #CBD5E1;
-  --card: #FFFFFF;
-  --input-bg: #F8FAFC;
-  --shadow: rgba(0, 0, 0, 0.1);
-  --scrollbar: #CBD5E1;
-  --scrollbar-hover: #94A3B8;
+  color-scheme: light;
+  --bg: #f7f7f8;
+  --bg-alt: #f1f2f4;
+  --surface: #ffffff;
+  --card: #ffffff;
+  --input-bg: #ffffff;
+  --text: #101114;
+  --text-muted: #686d76;
+  --primary: #101114;
+  --primary-hover: #2a2d33;
+  --accent: #4f46e5;
+  --border: #dedfe3;
+  --border-strong: #c8cad0;
+  --success: #15803d;
+  --success-bg: #ecfdf3;
+  --danger: #b42318;
+  --danger-bg: #fff1f0;
+  --warning: #a15c07;
+  --warning-bg: #fff7ed;
+  --shadow: 0 14px 35px rgba(16, 17, 20, 0.08);
+  --shadow-soft: 0 8px 20px rgba(16, 17, 20, 0.06);
+  --radius: 8px;
+  --scrollbar: #c8cad0;
+  --scrollbar-hover: #a9adb6;
 }
 
 html,
 body,
 #root {
   width: 100%;
-  height: 100%;
+  min-height: 100%;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  color: var(--text);
   background: var(--bg);
+  color: var(--text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background 0.3s ease, color 0.3s ease;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+img {
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  background: #101114;
+  color: #ffffff;
 }
 
 ::-webkit-scrollbar {
@@ -69,7 +80,7 @@ code {
 
 ::-webkit-scrollbar-thumb {
   background: var(--scrollbar);
-  border-radius: 4px;
+  border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {

@@ -181,7 +181,7 @@ export default function ChatRoomPage() {
             className="button-back"
             title="Back to Rooms"
           >
-            ← Back
+            Back
           </button>
           <div className="chat-info">
             <h2>{room?.name}</h2>
