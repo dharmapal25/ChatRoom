@@ -2,10 +2,17 @@ import { useState, useEffect } from 'react';
 import requestService from '../services/requestService';
 import '../styles/RequestNotifications.css';
 
-const RequestNotifications = ({ roomId, isAdmin }) => {
+const RequestNotifications = ({
+  roomId,
+  isAdmin,
+  isOpen,
+  onClose,
+  showInlineButton = true,
+}) => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showRequests, setShowRequests] = useState(false);
+  const panelOpen = isOpen ?? showRequests;
 
   useEffect(() => {
     if (isAdmin && roomId) {
@@ -48,22 +55,40 @@ const RequestNotifications = ({ roomId, isAdmin }) => {
     }
   };
 
+  const handleClose = () => {
+    setShowRequests(false);
+    onClose?.();
+  };
+
   if (!isAdmin) {
     return null;
   }
 
   return (
     <div className="request-notifications">
-      <button
-        className="request-toggle-btn"
-        onClick={() => setShowRequests(!showRequests)}
-      >
-        Join Requests {requests.length > 0 && <span className="badge">{requests.length}</span>}
-      </button>
+      {showInlineButton && (
+        <button
+          type="button"
+          className="request-toggle-btn"
+          onClick={() => setShowRequests(!showRequests)}
+        >
+          Join Requests {requests.length > 0 && <span className="badge">{requests.length}</span>}
+        </button>
+      )}
 
-      {showRequests && (
+      {panelOpen && (
         <div className="requests-panel">
-          <h3>Pending Join Requests</h3>
+          <div className="requests-header">
+            <h3>Pending Join Requests</h3>
+            <button
+              type="button"
+              className="requests-close"
+              onClick={handleClose}
+              aria-label="Close join requests"
+            >
+              x
+            </button>
+          </div>
           {loading ? (
             <p>Loading requests...</p>
           ) : requests.length === 0 ? (
@@ -81,16 +106,18 @@ const RequestNotifications = ({ roomId, isAdmin }) => {
                   </div>
                   <div className="request-actions">
                     <button
+                      type="button"
                       className="btn-approve"
                       onClick={() => handleApprove(request._id, request.username)}
                     >
-                      ✓ Approve
+                      Approve
                     </button>
                     <button
+                      type="button"
                       className="btn-reject"
                       onClick={() => handleReject(request._id, request.username)}
                     >
-                      ✕ Reject
+                      Reject
                     </button>
                   </div>
                 </div>
@@ -99,7 +126,6 @@ const RequestNotifications = ({ roomId, isAdmin }) => {
           )}
         </div>
       )}
-      
     </div>
   );
 };

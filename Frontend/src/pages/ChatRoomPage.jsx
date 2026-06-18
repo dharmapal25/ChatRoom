@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { FaBars, FaMicrophone, FaPaperPlane } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import { getRoom, leaveRoom, getRoomMessages } from '../services/roomService';
 import {
@@ -24,7 +25,14 @@ export default function ChatRoomPage() {
   const [error, setError] = useState(null);
   const [isSending, setIsSending] = useState(false);
   const [notification, setNotification] = useState('');
+  const [isListening, setIsListening] = useState(false);
+  const [isMembersOpen, setIsMembersOpen] = useState(false);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const [isChatMenuOpen, setIsChatMenuOpen] = useState(false);
+  const [showJoinRequests, setShowJoinRequests] = useState(false);
   const messagesEndRef = useRef(null);
+  const recognitionRef = useRef(null);
+  const voiceBaseTextRef = useRef('');
 
   // Scroll to bottom when messages change
   const scrollToBottom = () => {
@@ -34,6 +42,12 @@ export default function ChatRoomPage() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    return () => {
+      recognitionRef.current?.stop();
+    };
+  }, []);
 
   // Fetch room details and messages
   useEffect(() => {
@@ -135,6 +149,58 @@ export default function ChatRoomPage() {
     }
   };
 
+  const handleMessageKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage(e);
+    }
+  };
+
+  const handleMicClick = () => {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      setError('Mic typing is not supported in this browser');
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    voiceBaseTextRef.current = messageText.trimEnd();
+
+    recognition.onresult = (event) => {
+      const transcript = Array.from(event.results)
+        .map((result) => result[0].transcript)
+        .join('');
+      const baseText = voiceBaseTextRef.current;
+      const nextText = `${baseText}${baseText ? ' ' : ''}${transcript}`.slice(0, 1000);
+      setMessageText(nextText);
+    };
+
+    recognition.onerror = () => {
+      setIsListening(false);
+      setError('Mic typing failed. Please try again.');
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognitionRef.current = recognition;
+    setError(null);
+    setIsListening(true);
+    recognition.start();
+  };
+
   // Handle leave room
   const handleLeaveRoom = async () => {
     try {
@@ -188,14 +254,63 @@ export default function ChatRoomPage() {
             <span className="room-members-count">{room?.members.length} members</span>
           </div>
         </div>
-        <button onClick={handleLeaveRoom} className="button-leave">
-          Leave Room
-        </button>
+        <div className="chat-header-actions">
+          <button
+            type="button"
+            className="chat-menu-toggle"
+            aria-label="Open room menu"
+            aria-expanded={isChatMenuOpen}
+            onClick={() => setIsChatMenuOpen((open) => !open)}
+          >
+            <FaBars aria-hidden="true" />
+          </button>
+
+          {isChatMenuOpen && (
+            <div className="chat-menu-panel">
+              {room && user._id === room.owner._id && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowJoinRequests((open) => !open);
+                    setIsChatMenuOpen(false);
+                  }}
+                >
+                  Join Requests
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMembersOpen(true);
+                  setIsChatMenuOpen(false);
+                }}
+              >
+                Members
+              </button>
+              <button
+                type="button"
+                className="chat-menu-danger"
+                onClick={() => {
+                  setShowLeaveConfirm(true);
+                  setIsChatMenuOpen(false);
+                }}
+              >
+                Leave Room
+              </button>
+            </div>
+          )}
+        </div>
       </header>
 
       {/* Join Request Notifications (for room admin) */}
       {room && user._id === room.owner._id && (
-        <RequestNotifications roomId={roomId} isAdmin={true} />
+        <RequestNotifications
+          roomId={roomId}
+          isAdmin={true}
+          isOpen={showJoinRequests}
+          onClose={() => setShowJoinRequests(false)}
+          showInlineButton={false}
+        />
       )}
 
       {/* Main Content */}
@@ -237,8 +352,27 @@ export default function ChatRoomPage() {
         </div>
 
         {/* Members Sidebar */}
-        <aside className="members-sidebar">
-          <h3>Members ({room?.members.length})</h3>
+        {isMembersOpen && (
+          <button
+            type="button"
+            className="members-backdrop"
+            aria-label="Close members list"
+            onClick={() => setIsMembersOpen(false)}
+          />
+        )}
+
+        <aside className={`members-sidebar ${isMembersOpen ? 'is-open' : ''}`}>
+          <div className="members-header">
+            <h3>Members ({room?.members.length})</h3>
+            <button
+              type="button"
+              className="members-close"
+              onClick={() => setIsMembersOpen(false)}
+              aria-label="Close members list"
+            >
+              x
+            </button>
+          </div>
           <div className="members-list">
             {room?.members.map((member) => (
               <div key={member._id} className="member-item">
@@ -259,23 +393,59 @@ export default function ChatRoomPage() {
       <footer className="chat-footer">
         {error && <div className="error-message">{error}</div>}
         <form onSubmit={handleSendMessage} className="message-form">
-          <input
-            type="text"
-            value={messageText}
-            onChange={(e) => setMessageText(e.target.value)}
-            placeholder="Type a message..."
-            disabled={isSending}
-            maxLength="1000"
-          />
-          <button
-            type="submit"
-            className="button-send"
-            disabled={isSending || !messageText.trim()}
-          >
-            {isSending ? 'Sending...' : 'Send'}
-          </button>
+          <div className="message-input-shell">
+            <textarea
+              value={messageText}
+              onChange={(e) => setMessageText(e.target.value)}
+              onKeyDown={handleMessageKeyDown}
+              placeholder="Type a message..."
+              disabled={isSending}
+              maxLength="1000"
+              rows={1}
+            />
+            <div className="composer-actions">
+              <button
+                type="button"
+                className={`button-mic ${isListening ? 'is-listening' : ''}`}
+                onClick={handleMicClick}
+                disabled={isSending}
+                aria-label={isListening ? 'Stop mic typing' : 'Start mic typing'}
+              >
+                <FaMicrophone aria-hidden="true" />
+              </button>
+              <button
+                type="submit"
+                className="button-send"
+                disabled={isSending || !messageText.trim()}
+                aria-label="Send message"
+              >
+                <FaPaperPlane aria-hidden="true" />
+                <span>{isSending ? 'Sending...' : 'Send'}</span>
+              </button>
+            </div>
+          </div>
         </form>
       </footer>
+
+      {showLeaveConfirm && (
+        <div className="chat-modal-backdrop" role="dialog" aria-modal="true">
+          <div className="chat-modal">
+            <h3>Are you sure want to leave this room?</h3>
+            <div className="chat-modal-actions">
+              <button
+                type="button"
+                className="button-cancel"
+                onClick={() => setShowLeaveConfirm(false)}
+              >
+                No
+              </button>
+              <button type="button" className="button-confirm-danger" onClick={handleLeaveRoom}>
+                Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

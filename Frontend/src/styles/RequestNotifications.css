@@ -16,6 +16,7 @@
   font-size: 0.9rem;
   font-weight: 750;
   box-shadow: var(--shadow-soft);
+  white-space: nowrap;
 }
 
 .request-toggle-btn:hover {
@@ -36,25 +37,55 @@
 }
 
 .requests-panel {
-  position: absolute;
-  top: 136px;
-  left: 24px;
-  z-index: 40;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 90;
   width: min(440px, calc(100vw - 48px));
+  max-height: min(520px, calc(100vh - 48px));
   padding: 16px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
+  overflow: hidden;
+  transform: translate(-50%, -50%);
 }
 
-.requests-panel h3 {
+.requests-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin: 0 0 14px;
   padding-bottom: 12px;
-  color: var(--text);
   border-bottom: 1px solid var(--border);
+}
+
+.requests-header h3 {
+  margin: 0;
+  color: var(--text);
   font-size: 1rem;
   font-weight: 850;
+}
+
+.requests-close {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  background: var(--bg-alt);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 850;
+}
+
+.requests-close:hover {
+  border-color: var(--primary);
 }
 
 .no-requests {
@@ -64,7 +95,7 @@
 }
 
 .requests-list {
-  max-height: 360px;
+  max-height: min(360px, calc(100vh - 155px));
   overflow-y: auto;
   display: grid;
   gap: 10px;
@@ -83,6 +114,7 @@
 
 .request-info {
   min-width: 0;
+  flex: 1;
 }
 
 .request-info h4 {
@@ -129,11 +161,18 @@
 }
 
 @media (max-width: 560px) {
-  .request-toggle-btn,
-  .requests-panel {
+  .request-toggle-btn {
+    top: 118px;
     left: 12px;
-    right: 12px;
+    max-width: calc(100vw - 24px);
+  }
+
+  .requests-panel {
+    top: 50%;
+    left: 50%;
     width: calc(100vw - 24px);
+    max-height: calc(100vh - 24px);
+    padding: 12px;
   }
 
   .request-card {
@@ -148,5 +187,15 @@
   .btn-approve,
   .btn-reject {
     flex: 1;
+  }
+
+  .requests-list {
+    max-height: calc(100vh - 145px);
+  }
+}
+
+@media (max-width: 380px) {
+  .request-actions {
+    flex-direction: column;
   }
 }

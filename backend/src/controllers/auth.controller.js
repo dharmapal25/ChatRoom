@@ -8,6 +8,14 @@ const pendingOtps = new Map();
 const OTP_EXPIRY_MS = 10 * 60 * 1000;
 let mailTransporter = null;
 
+const getEnvFlag = (value, defaultValue = false) => {
+  if (value === undefined || value === null || value === '') {
+    return defaultValue;
+  }
+
+  return ['true', '1', 'yes'].includes(String(value).toLowerCase());
+};
+
 const getOtpHash = (email, otp) => {
   return crypto
     .createHmac('sha256', process.env.OTP_SECRET || process.env.JWT_SECRET || 'otp-secret')
@@ -18,6 +26,9 @@ const getOtpHash = (email, otp) => {
 const getMailTransporter = () => {
   const user = process.env.GMAIL_USER || process.env.EMAIL_USER;
   const pass = process.env.GMAIL_APP_PASSWORD || process.env.EMAIL_PASS;
+  const host = process.env.SMTP_HOST || 'smtp.gmail.com';
+  const port = Number(process.env.SMTP_PORT || 465);
+  const secure = getEnvFlag(process.env.SMTP_SECURE, port === 465);
 
   if (!user || !pass) {
     throw new Error('Gmail credentials missing. Add GMAIL_USER and GMAIL_APP_PASSWORD to .env');
@@ -28,20 +39,17 @@ const getMailTransporter = () => {
   }
 
   mailTransporter = nodemailer.createTransport({
-    // enable logger/debug to help troubleshoot delivery issues
-    logger: true,
-    debug: true,
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
+    host,
+    port,
+    secure,
     family: 4,
     pool: true,
     maxConnections: 2,
     maxMessages: 50,
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000,
-    requireTLS: true,
+    connectionTimeout: Number(process.env.SMTP_CONNECTION_TIMEOUT || 30000),
+    greetingTimeout: Number(process.env.SMTP_GREETING_TIMEOUT || 30000),
+    socketTimeout: Number(process.env.SMTP_SOCKET_TIMEOUT || 30000),
+    requireTLS: !secure,
     auth: { user, pass },
   });
 
@@ -67,14 +75,6 @@ const sendOtpEmail = async (email, username, otp) => {
   const from = process.env.GMAIL_USER || process.env.EMAIL_USER;
   const transporter = getMailTransporter();
   const { subject, text, html } = buildOtpEmail(username, otp);
-  // Verify transporter connection and log result to help debugging
-  try {
-    // verify() ensures SMTP connection can be established
-    await transporter.verify();
-    console.log('Mail transporter verified successfully');
-  } catch (verifyErr) {
-    console.error('Mail transporter verification failed:', verifyErr);
-  }
 
   try {
     const info = await transporter.sendMail({

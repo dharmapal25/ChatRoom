@@ -1,14 +1,23 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FaBars } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import dashboardImage from '../../public/happy.png';
 
 export default function HomePage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const handleLogout = async () => {
     await logout();
     navigate('/login');
+  };
+
+  const goToPage = (path) => {
+    setIsMenuOpen(false);
+    navigate(path);
   };
 
   return (
@@ -18,16 +27,37 @@ export default function HomePage() {
           <span className="tagline">Welcome back</span>
           <h2>Hello {user?.username || 'User'}</h2>
         </div>
-        <div className="header-buttons">
+        <div className="menu-wrap">
           <button
-            className="button-primary Join-Rooms"
-            onClick={() => navigate('/rooms')}
+            className="menu-toggle"
+            type="button"
+            aria-label="Open dashboard menu"
+            aria-expanded={isMenuOpen}
+            onClick={() => setIsMenuOpen((open) => !open)}
           >
-            Join Rooms
+            <FaBars aria-hidden="true" />
           </button>
-          <button className="button-secondary logout" onClick={handleLogout}>
-            Logout
-          </button>
+
+          {isMenuOpen && (
+            <div className="menu-panel">
+              <button type="button" onClick={() => goToPage('/rooms')}>
+                Join Room
+              </button>
+              <button type="button" onClick={() => goToPage('/create-room')}>
+                Create Room
+              </button>
+              <button
+                type="button"
+                className="menu-logout"
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  setShowLogoutConfirm(true);
+                }}
+              >
+                Logout
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
@@ -72,23 +102,31 @@ export default function HomePage() {
             <img src={dashboardImage} alt="Dashboard" draggable={false} />
           </div>
         </section>
+      </main>
 
-        <section className="user-info-section">
-          <div className="user-card">
-            <h2>Your Profile</h2>
-            <div className="user-details">
-              <div className="detail-item">
-                <span className="label">Username</span>
-                <span className="value">{user?.username || 'Loading...'}</span>
-              </div>
-              <div className="detail-item">
-                <span className="label">Email</span>
-                <span className="value">{user?.email || 'Loading...'}</span>
-              </div>
+      {showLogoutConfirm && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true">
+          <div className="logout-modal">
+            <h3>Are you sure want to logout?</h3>
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="button-secondary"
+                onClick={() => setShowLogoutConfirm(false)}
+              >
+                No
+              </button>
+              <button
+                type="button"
+                className="button-primary danger"
+                onClick={handleLogout}
+              >
+                Yes
+              </button>
             </div>
           </div>
-        </section>
-      </main>
+        </div>
+      )}
     </div>
   );
 }
