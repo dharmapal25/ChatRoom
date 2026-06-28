@@ -41,22 +41,6 @@ It is designed for secure room-based conversations with ownership controls, requ
 
 ---
 
-## Screenshots
-
-### Welcome Page
-
-![Welcome](Frontend/public/happy.png)
-
-### Rooms Page
-
-![Rooms](Frontend/public/group.png)
-
-### App Logo
-
-![Logo](Frontend/public/Flash.png)
-
----
-
 ## Main Features
 
 | Feature | Description |
